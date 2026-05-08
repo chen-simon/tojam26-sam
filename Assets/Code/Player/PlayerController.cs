@@ -15,6 +15,9 @@ namespace ToJam26.Gameplay.Input
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Animator animator;
 
+        [Header("Movement")]
+        [SerializeField] private float moveSpeed = 1f;
+
         [Header("Input Settings")]
         [SerializeField] private InputActionReference moveAction;
         [SerializeField] private float inputDeadzone = 0.1f;
@@ -60,23 +63,30 @@ namespace ToJam26.Gameplay.Input
         {
             Vector2 raw = moveAction != null ? moveAction.action.ReadValue<Vector2>() : Vector2.zero;
 
-            if (raw.magnitude < inputDeadzone)
+            float magnitude = raw.magnitude;
+            if (magnitude < inputDeadzone)
             {
                 movementInput = Vector3.zero;
                 return;
             }
 
+            float analogScale = Mathf.InverseLerp(inputDeadzone, 1f, magnitude);
+            Vector2 dir2D = raw / magnitude;
+
             Transform cam = cameraTransform ?? Camera.main?.transform;
+            Vector3 dir;
             if (cam != null)
             {
                 Vector3 forward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
                 Vector3 right   = Vector3.ProjectOnPlane(cam.right,   Vector3.up).normalized;
-                movementInput = (forward * raw.y + right * raw.x).normalized;
+                dir = (forward * dir2D.y + right * dir2D.x).normalized;
             }
             else
             {
-                movementInput = new Vector3(raw.x, 0f, raw.y).normalized;
+                dir = new Vector3(dir2D.x, 0f, dir2D.y).normalized;
             }
+
+            movementInput = dir * analogScale;
         }
 
         private void ApplyMovement()
@@ -95,7 +105,7 @@ namespace ToJam26.Gameplay.Input
 
             characterController.Move(velocity * Time.deltaTime);
 
-            animator?.SetFloat("Speed", characterController.velocity.magnitude);
+            animator.SetFloat("Speed", characterController.velocity.magnitude);
 
             if (movementInput.sqrMagnitude > 0f)
             {
