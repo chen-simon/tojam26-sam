@@ -1,5 +1,6 @@
 using com.marufhow.meshslicer.core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace com.marufhow.meshslicer.demo
 {
@@ -10,9 +11,9 @@ namespace com.marufhow.meshslicer.demo
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 RaycastHit hit;
 
                 if (Physics.Raycast(ray, out hit))
@@ -20,7 +21,7 @@ namespace com.marufhow.meshslicer.demo
                     if (hit.collider.gameObject.CompareTag("Ground")) return;
 
                     // Check if the Shift key is held down
-                    Vector3 cutDirection = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)
+                    Vector3 cutDirection = Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed
                         ? Vector3.up
                         : Vector3.right;
 
