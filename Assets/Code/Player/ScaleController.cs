@@ -134,7 +134,7 @@ namespace ToJam26.Gameplay.Player
             }
 
             Vector3 knockbackForce = knockbackDirection.normalized * knockbackMagnitude;
-            rigidBody.velocity = Vector3.zero; // Reset velocity
+            rigidBody.linearVelocity = Vector3.zero; // Reset velocity
             rigidBody.AddForce(knockbackForce, ForceMode.Impulse);
 
             // Set knockback state

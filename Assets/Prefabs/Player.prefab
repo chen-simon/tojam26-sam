@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6355228386417284145}
   - component: {fileID: 1905079797750746851}
-  - component: {fileID: 2761689434580857134}
-  - component: {fileID: 1053205593898764480}
+  - component: {fileID: 7520536838063735632}
+  - component: {fileID: 1073032058165816830}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -89,7 +89,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1818360608 &2761689434580857134
+--- !u!1818360608 &7520536838063735632
 PositionConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -109,7 +109,7 @@ PositionConstraint:
   m_Sources:
   - sourceTransform: {fileID: 5078627680666659267}
     weight: 1
---- !u!1818360609 &1053205593898764480
+--- !u!1818360609 &1073032058165816830
 RotationConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -139,7 +139,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6460168430261530539}
   - component: {fileID: 3946720844808481655}
-  - component: {fileID: 7563537426823174812}
+  - component: {fileID: 3579433050095852123}
   - component: {fileID: 9128885248361950094}
   m_Layer: 0
   m_Name: Player
@@ -191,7 +191,7 @@ CharacterController:
   m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.75, z: 0}
---- !u!114 &7563537426823174812
+--- !u!114 &3579433050095852123
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -345,10 +345,10 @@ PrefabInstance:
       addedObject: {fileID: 4747045290126118064}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6032535852490166709}
+      addedObject: {fileID: 3947037751725094445}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 100748580292321028}
+      addedObject: {fileID: 2391921298161059111}
   m_SourcePrefab: {fileID: 100100000, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
 --- !u!1 &1299190042604594200 stripped
 GameObject:
@@ -377,7 +377,7 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -5495902117074765545, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
---- !u!1818360608 &6032535852490166709
+--- !u!1818360608 &3947037751725094445
 PositionConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -397,7 +397,7 @@ PositionConstraint:
   m_Sources:
   - sourceTransform: {fileID: 5078627680666659267}
     weight: 1
---- !u!1818360609 &100748580292321028
+--- !u!1818360609 &2391921298161059111
 RotationConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -485,14 +485,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6437848643930766488}
+      addedObject: {fileID: 6406197315679623519}
   m_SourcePrefab: {fileID: 100100000, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
 --- !u!1 &4862171371062425155 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
   m_PrefabInstance: {fileID: 5744498314442885906}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &6437848643930766488
+--- !u!95 &6406197315679623519
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0

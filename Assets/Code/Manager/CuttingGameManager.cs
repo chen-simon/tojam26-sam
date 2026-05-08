@@ -2,6 +2,7 @@ using UnityEngine;
 using ToJam26.Gameplay.Slicing;
 using ToJam26.Gameplay.Player;
 using ToJam26.Gameplay.Equipment;
+using ToJam26.Gameplay.Utility;
 using com.marufhow.meshslicer.core;
 
 namespace ToJam26.Gameplay.Manager
@@ -34,7 +35,7 @@ namespace ToJam26.Gameplay.Manager
 
         /// <summary>
         /// Called when a player is sliced.
-        /// Orchestrates: mesh slicing -> scale recalculation -> knockback application
+        /// Orchestrates: mesh slicing -> keep larger part -> scale recalculation -> knockback application
         /// </summary>
         private void HandlePlayerSliced(ScaleController targetPlayer, Vector3 cutPoint, Vector3 cutNormal, float cuttingForce)
         {
@@ -45,10 +46,11 @@ namespace ToJam26.Gameplay.Manager
             if (meshSlicer != null)
             {
                 meshSlicer.Cut(targetPlayer.gameObject, cutPoint, cutNormal);
+                // Step 2: Find and compare the two pieces, keep larger one
+                KeepLargerPiece(targetPlayer, cutNormal, cuttingForce);
             }
 
-            // Step 2: Wait for mesh to be generated, then recalculate scale
-            // Note: MeshSlicer generates mesh immediately in this implementation
+            // Step 3: Recalculate scale and apply knockback
             PerformPostSliceOperations(targetPlayer, cutPoint, cutNormal, cuttingForce);
         }
 
@@ -71,6 +73,154 @@ namespace ToJam26.Gameplay.Manager
                 Debug.Log($"[CuttingGameManager] Applied knockback: {knockbackDirection} * {knockbackMagnitude}");
                 Debug.Log($"[CuttingGameManager] New scale: {targetPlayer.CurrentScale:F2}, New mass: {targetPlayer.CurrentMass:F2}");
             }
+        }
+
+        /// <summary>
+        /// Keeps the larger volume piece as the player body and turns the smaller one into debris.
+        /// </summary>
+        private void KeepLargerPiece(ScaleController targetPlayer, Vector3 cutNormal, float cuttingForce)
+        {
+            GameObject originalPiece = targetPlayer.gameObject;
+            MeshFilter originalMeshFilter = originalPiece.GetComponent<MeshFilter>();
+
+            if (originalMeshFilter == null || originalMeshFilter.mesh == null)
+                return;
+
+            GameObject slicedPiece = FindSlicedPiece(originalPiece);
+
+            if (slicedPiece == null)
+                return;
+
+            MeshFilter slicedMeshFilter = slicedPiece.GetComponent<MeshFilter>();
+            if (slicedMeshFilter == null || slicedMeshFilter.mesh == null)
+                return;
+
+            // Calculate volumes
+            float originalVolume = MeshVolumeCalculator.CalculateVolume(originalMeshFilter.mesh);
+            float slicedVolume = MeshVolumeCalculator.CalculateVolume(slicedMeshFilter.mesh);
+
+            if (debugMode)
+                Debug.Log($"[CuttingGameManager] Original volume: {originalVolume:F2}, Sliced volume: {slicedVolume:F2}");
+
+            if (slicedVolume > originalVolume)
+            {
+                if (debugMode)
+                    Debug.Log($"[CuttingGameManager] Keeping sliced piece (larger)");
+
+                MeshRenderer originalRenderer = originalPiece.GetComponent<MeshRenderer>();
+                GameObject detachedPiece = CreateDetachedPiece(
+                    originalPiece,
+                    originalMeshFilter.mesh,
+                    originalRenderer != null ? originalRenderer.materials : null);
+
+                PrepareDetachedPiece(detachedPiece, originalPiece, cutNormal, cuttingForce);
+
+                targetPlayer.transform.SetPositionAndRotation(slicedPiece.transform.position, slicedPiece.transform.rotation);
+                targetPlayer.transform.localScale = slicedPiece.transform.localScale;
+
+                Mesh slicedMesh = slicedMeshFilter.mesh;
+                originalMeshFilter.mesh = slicedMesh;
+
+                MeshCollider originalCollider = originalPiece.GetComponent<MeshCollider>();
+                if (originalCollider != null)
+                    originalCollider.sharedMesh = slicedMesh;
+
+                MeshRenderer slicedRenderer = slicedPiece.GetComponent<MeshRenderer>();
+                if (originalRenderer != null && slicedRenderer != null)
+                    originalRenderer.materials = slicedRenderer.materials;
+
+                UnityEngine.Object.Destroy(slicedPiece);
+            }
+            else
+            {
+                if (debugMode)
+                    Debug.Log($"[CuttingGameManager] Keeping original piece (larger)");
+
+                PrepareDetachedPiece(slicedPiece, originalPiece, cutNormal, cuttingForce);
+            }
+        }
+
+        private GameObject FindSlicedPiece(GameObject originalPiece)
+        {
+            if (meshSlicer != null && meshSlicer.LastSlicedObject != null && meshSlicer.LastSlicedObject != originalPiece)
+                return meshSlicer.LastSlicedObject;
+
+            Transform parentTransform = originalPiece.transform.parent;
+            if (parentTransform == null)
+                return null;
+
+            for (int i = 0; i < parentTransform.childCount; i++)
+            {
+                Transform child = parentTransform.GetChild(i);
+                if (child.gameObject != originalPiece && child.gameObject.name.StartsWith("Sliced"))
+                    return child.gameObject;
+            }
+
+            return null;
+        }
+
+        private static GameObject CreateDetachedPiece(GameObject sourcePiece, Mesh sourceMesh, Material[] sourceMaterials)
+        {
+            if (sourcePiece == null || sourceMesh == null)
+                return null;
+
+            GameObject detachedPiece = new GameObject($"Detached {sourcePiece.name}");
+            detachedPiece.layer = sourcePiece.layer;
+
+            Transform detachedTransform = detachedPiece.transform;
+            detachedTransform.SetParent(sourcePiece.transform.parent, false);
+            detachedTransform.position = sourcePiece.transform.position;
+            detachedTransform.rotation = sourcePiece.transform.rotation;
+            detachedTransform.localScale = sourcePiece.transform.localScale;
+
+            MeshFilter meshFilter = detachedPiece.AddComponent<MeshFilter>();
+            meshFilter.mesh = UnityEngine.Object.Instantiate(sourceMesh);
+
+            MeshRenderer meshRenderer = detachedPiece.AddComponent<MeshRenderer>();
+            if (sourceMaterials != null && sourceMaterials.Length > 0)
+                meshRenderer.materials = sourceMaterials;
+
+            MeshCollider meshCollider = detachedPiece.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = meshFilter.mesh;
+            meshCollider.convex = true;
+
+            return detachedPiece;
+        }
+
+        private static void PrepareDetachedPiece(GameObject detachedPiece, GameObject sourcePiece, Vector3 cutNormal, float cuttingForce)
+        {
+            if (detachedPiece == null)
+                return;
+
+            if (detachedPiece.TryGetComponent<MeshCollider>(out MeshCollider meshCollider))
+                meshCollider.convex = true;
+
+            Rigidbody detachedBody = detachedPiece.GetComponent<Rigidbody>();
+            if (detachedBody == null)
+                detachedBody = detachedPiece.AddComponent<Rigidbody>();
+
+            Rigidbody sourceBody = sourcePiece != null ? sourcePiece.GetComponent<Rigidbody>() : null;
+
+            detachedBody.isKinematic = false;
+            detachedBody.useGravity = true;
+            detachedBody.constraints = RigidbodyConstraints.None;
+
+            if (sourceBody != null)
+            {
+                detachedBody.mass = Mathf.Max(0.05f, sourceBody.mass * 0.35f);
+                detachedBody.interpolation = sourceBody.interpolation;
+                detachedBody.collisionDetectionMode = sourceBody.collisionDetectionMode;
+                detachedBody.linearVelocity = sourceBody.linearVelocity;
+                detachedBody.angularVelocity = sourceBody.angularVelocity;
+            }
+            else if (detachedBody.mass <= 0f)
+            {
+                detachedBody.mass = 1f;
+            }
+
+            Vector3 pushDirection = cutNormal.sqrMagnitude > 0f ? cutNormal.normalized : Vector3.up;
+            Vector3 impulse = pushDirection * Mathf.Max(0.5f, cuttingForce * 0.25f) + Vector3.up * 0.25f;
+            detachedBody.AddForce(impulse, ForceMode.Impulse);
         }
 
         /// <summary>
