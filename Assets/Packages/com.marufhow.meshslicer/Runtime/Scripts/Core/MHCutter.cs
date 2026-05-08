@@ -13,6 +13,7 @@ namespace com.marufhow.meshslicer.core
         private MHMesh _leftMesh;
         private GameObject _rightSlicedGameObject;
         private MHMesh _rightMesh;
+        public GameObject LastSlicedObject => _rightSlicedGameObject;
         
         private Mesh _mesh;
         private int _count;
@@ -88,11 +89,45 @@ namespace com.marufhow.meshslicer.core
             _leftMesh.GenerateMesh(); // reform current to cutObject
             _rightMesh.GenerateMesh(_leftMesh.Materials);  // new cut object
             
-            _rightSlicedGameObject.transform.position = cutObject.transform.position + Vector3.right * 0.1f;
+            _rightSlicedGameObject.transform.SetParent(cutObject.transform.parent, false);
+            Vector3 separationDirection = cutNormal.sqrMagnitude > 0f ? cutNormal.normalized : Vector3.right;
+            _rightSlicedGameObject.transform.position = cutObject.transform.position + separationDirection * 0.1f;
             _rightSlicedGameObject.transform.rotation = cutObject.transform.rotation;
             _rightSlicedGameObject.transform.localScale = cutObject.transform.localScale;
-            var rightRb = _rightSlicedGameObject.AddComponent<Rigidbody>();
-            rightRb.AddForce( Vector3.right , ForceMode.Impulse);
+            ConfigureDetachedPiecePhysics(cutObject, _rightSlicedGameObject, separationDirection);
+        }
+
+        private static void ConfigureDetachedPiecePhysics(GameObject sourceObject, GameObject detachedPiece, Vector3 separationDirection)
+        {
+            if (detachedPiece == null)
+            {
+                return;
+            }
+
+            detachedPiece.layer = sourceObject.layer;
+
+            Rigidbody detachedBody = detachedPiece.GetComponent<Rigidbody>();
+            if (detachedBody == null)
+            {
+                detachedBody = detachedPiece.AddComponent<Rigidbody>();
+            }
+
+            Rigidbody sourceBody = sourceObject.GetComponent<Rigidbody>();
+            detachedBody.isKinematic = false;
+            detachedBody.useGravity = true;
+            detachedBody.constraints = RigidbodyConstraints.None;
+
+            if (sourceBody != null)
+            {
+                detachedBody.mass = Mathf.Max(0.05f, sourceBody.mass * 0.5f);
+                detachedBody.interpolation = sourceBody.interpolation;
+                detachedBody.collisionDetectionMode = sourceBody.collisionDetectionMode;
+                detachedBody.linearVelocity = sourceBody.linearVelocity;
+                detachedBody.angularVelocity = sourceBody.angularVelocity;
+            }
+
+            Vector3 impulse = separationDirection.sqrMagnitude > 0f ? separationDirection.normalized : Vector3.up;
+            detachedBody.AddForce(impulse * 0.75f, ForceMode.Impulse);
         }
 
        

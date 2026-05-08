@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6355228386417284145}
   - component: {fileID: 1905079797750746851}
-  - component: {fileID: 2761689434580857134}
-  - component: {fileID: 1053205593898764480}
+  - component: {fileID: 8771681191443107050}
+  - component: {fileID: 13920881543649867}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -89,7 +89,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1818360608 &2761689434580857134
+--- !u!1818360608 &8771681191443107050
 PositionConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -100,7 +100,7 @@ PositionConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_TranslationAtRest: {x: -0.004785724, y: 0.96391165, z: 0.3198207}
-  m_TranslationOffset: {x: 0, y: 0.100000024, z: 0.32}
+  m_TranslationOffset: {x: 0, y: 0.1456505, z: 0.4910375}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -109,7 +109,7 @@ PositionConstraint:
   m_Sources:
   - sourceTransform: {fileID: 5078627680666659267}
     weight: 1
---- !u!1818360609 &1053205593898764480
+--- !u!1818360609 &13920881543649867
 RotationConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,7 +120,7 @@ RotationConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_RotationAtRest: {x: 0, y: 0, z: 0}
-  m_RotationOffset: {x: 89.980225, y: 0, z: 0}
+  m_RotationOffset: {x: 72.961464, y: 180, z: -180}
   m_AffectRotationX: 1
   m_AffectRotationY: 1
   m_AffectRotationZ: 1
@@ -139,7 +139,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6460168430261530539}
   - component: {fileID: 3946720844808481655}
-  - component: {fileID: 7563537426823174812}
+  - component: {fileID: 6088080973931838255}
   - component: {fileID: 9128885248361950094}
   m_Layer: 0
   m_Name: Player
@@ -191,7 +191,7 @@ CharacterController:
   m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.75, z: 0}
---- !u!114 &7563537426823174812
+--- !u!114 &6088080973931838255
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -205,6 +205,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scaleController: {fileID: 9128885248361950094}
   cameraTransform: {fileID: 0}
+  animator: {fileID: 5735105544015766604}
+  moveSpeed: 1
   moveAction: {fileID: 0}
   inputDeadzone: 0.1
   rotationSpeed: 15
@@ -345,10 +347,10 @@ PrefabInstance:
       addedObject: {fileID: 4747045290126118064}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6032535852490166709}
+      addedObject: {fileID: 73491973213116291}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 100748580292321028}
+      addedObject: {fileID: 2005269338643496548}
   m_SourcePrefab: {fileID: 100100000, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
 --- !u!1 &1299190042604594200 stripped
 GameObject:
@@ -377,7 +379,7 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -5495902117074765545, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
---- !u!1818360608 &6032535852490166709
+--- !u!1818360608 &73491973213116291
 PositionConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -388,7 +390,7 @@ PositionConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_TranslationAtRest: {x: 0.13521427, y: 0.96391165, z: -0.05017929}
-  m_TranslationOffset: {x: 0.13999999, y: 0.100000024, z: -0.05}
+  m_TranslationOffset: {x: 0.13999999, y: 0.1456505, z: 0.1210375}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -397,7 +399,7 @@ PositionConstraint:
   m_Sources:
   - sourceTransform: {fileID: 5078627680666659267}
     weight: 1
---- !u!1818360609 &100748580292321028
+--- !u!1818360609 &2005269338643496548
 RotationConstraint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -408,7 +410,7 @@ RotationConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_RotationAtRest: {x: -89.980225, y: 0, z: -80.670265}
-  m_RotationOffset: {x: 0.0032424321, y: -0.019736426, z: -80.689995}
+  m_RotationOffset: {x: 17.041801, y: -0.020643087, z: -80.69605}
   m_AffectRotationX: 1
   m_AffectRotationY: 1
   m_AffectRotationZ: 1
@@ -475,24 +477,32 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8117444971259850875, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 04c31db265d694418b22fbe7527cbf3a, type: 2}
     - target: {fileID: 919132149155446097, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
       propertyPath: m_Name
       value: legs
       objectReference: {fileID: 0}
+    - target: {fileID: 8417361359673230750, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 04c31db265d694418b22fbe7527cbf3a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6437848643930766488}
+      addedObject: {fileID: 5735105544015766604}
   m_SourcePrefab: {fileID: 100100000, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
 --- !u!1 &4862171371062425155 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
   m_PrefabInstance: {fileID: 5744498314442885906}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &6437848643930766488
+--- !u!95 &5735105544015766604
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
