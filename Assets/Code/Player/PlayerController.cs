@@ -36,9 +36,6 @@ namespace ToJam26.Gameplay.Input
             if (characterController == null)
                 characterController = GetComponent<CharacterController>();
 
-            if (animator == null)
-                animator = GetComponent<Animator>();
-
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
 
