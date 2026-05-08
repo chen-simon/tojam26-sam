@@ -13,6 +13,7 @@ namespace ToJam26.Gameplay.Input
         [Header("Controllers")]
         [SerializeField] private ScaleController scaleController;
         [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Animator animator;
 
         [Header("Input Settings")]
         [SerializeField] private InputActionReference moveAction;
@@ -31,6 +32,9 @@ namespace ToJam26.Gameplay.Input
 
             if (characterController == null)
                 characterController = GetComponent<CharacterController>();
+
+            if (animator == null)
+                animator = GetComponent<Animator>();
 
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
@@ -90,6 +94,8 @@ namespace ToJam26.Gameplay.Input
             velocity.y = verticalVelocity;
 
             characterController.Move(velocity * Time.deltaTime);
+
+            animator?.SetFloat("Speed", characterController.velocity.magnitude);
 
             if (movementInput.sqrMagnitude > 0f)
             {
