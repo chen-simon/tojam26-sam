@@ -12,81 +12,90 @@ namespace ToJam26.Gameplay.Input
     {
         [Header("Controllers")]
         [SerializeField] private ScaleController scaleController;
+        [SerializeField] private Transform cameraTransform;
 
         [Header("Input Settings")]
+        [SerializeField] private InputActionReference moveAction;
         [SerializeField] private float inputDeadzone = 0.1f;
+        [SerializeField] private float rotationSpeed = 720f;
 
         // Components
-        private Rigidbody rigidBody;
+        private CharacterController characterController;
         private Vector3 movementInput;
+        private float verticalVelocity;
 
         private void OnEnable()
         {
             if (scaleController == null)
                 scaleController = GetComponent<ScaleController>();
 
-            if (rigidBody == null)
-                rigidBody = GetComponent<Rigidbody>();
+            if (characterController == null)
+                characterController = GetComponent<CharacterController>();
 
-            // Subscribe to scale changes to handle effects
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
+
+            moveAction?.action.Enable();
         }
 
         private void OnDisable()
         {
             if (scaleController != null)
                 scaleController.OnScaleChanged -= OnScaleChanged;
+
+            moveAction?.action.Disable();
         }
 
         private void Update()
         {
-            // Read input
             ReadInput();
-        }
-
-        private void FixedUpdate()
-        {
-            // Apply movement, accounting for current scale/mass
             ApplyMovement();
         }
 
         private void ReadInput()
         {
-            // Example: WASD movement
-            movementInput = Vector3.zero;
+            Vector2 raw = moveAction != null ? moveAction.action.ReadValue<Vector2>() : Vector2.zero;
 
-            if (Keyboard.current.wKey.isPressed)
-                movementInput.z += 1f;
-            if (Keyboard.current.sKey.isPressed)
-                movementInput.z -= 1f;
-            if (Keyboard.current.aKey.isPressed)
-                movementInput.x -= 1f;
-            if (Keyboard.current.dKey.isPressed)
-                movementInput.x += 1f;
-
-            // Apply deadzone
-            if (movementInput.magnitude < inputDeadzone)
+            if (raw.magnitude < inputDeadzone)
+            {
                 movementInput = Vector3.zero;
+                return;
+            }
+
+            Transform cam = cameraTransform ?? Camera.main?.transform;
+            if (cam != null)
+            {
+                Vector3 forward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
+                Vector3 right   = Vector3.ProjectOnPlane(cam.right,   Vector3.up).normalized;
+                movementInput = (forward * raw.y + right * raw.x).normalized;
+            }
             else
-                movementInput = movementInput.normalized;
+            {
+                movementInput = new Vector3(raw.x, 0f, raw.y).normalized;
+            }
         }
 
         private void ApplyMovement()
         {
-            if (rigidBody == null || scaleController == null || scaleController.IsKnockedBack)
+            if (characterController == null || scaleController == null || scaleController.IsKnockedBack)
                 return;
 
-            // Get scale-dependent movement speed
+            if (characterController.isGrounded && verticalVelocity < 0f)
+                verticalVelocity = -2f;
+            else
+                verticalVelocity += Physics.gravity.y * Time.deltaTime;
+
             float currentSpeed = scaleController.GetCurrentMovementSpeed();
-
-            // Apply movement
             Vector3 velocity = movementInput * currentSpeed;
-            
-            // Preserve vertical velocity if using gravity
-            velocity.y = rigidBody.linearVelocity.y;
+            velocity.y = verticalVelocity;
 
-            rigidBody.linearVelocity = velocity;
+            characterController.Move(velocity * Time.deltaTime);
+
+            if (movementInput.sqrMagnitude > 0f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(movementInput);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
         }
 
         /// <summary>
