@@ -4,10 +4,8 @@ using ToJam26.Gameplay.Player;
 
 namespace ToJam26.Gameplay.Input
 {
-    /// <summary>
-    /// Example player controller showing how to interact with ScaleController.
-    /// Handles movement and uses scale-dependent movement speed.
-    /// </summary>
+    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
     {
         [Header("Controllers")]
@@ -19,14 +17,20 @@ namespace ToJam26.Gameplay.Input
         [SerializeField] private float moveSpeed = 1f;
 
         [Header("Input Settings")]
-        [SerializeField] private InputActionReference moveAction;
         [SerializeField] private float inputDeadzone = 0.1f;
         [SerializeField] private float rotationSpeed = 720f;
+        [SerializeField] private float speedDamping = 10f;
 
         // Components
         private CharacterController characterController;
+        private PlayerInput playerInput;
+        private InputAction moveAction;
         private Vector3 movementInput;
         private float verticalVelocity;
+        private float smoothedSpeed;
+
+        private static readonly int AnimSpeed = Animator.StringToHash("Speed");
+        private static readonly int AnimAttack = Animator.StringToHash("Attack");
 
         private void OnEnable()
         {
@@ -36,10 +40,17 @@ namespace ToJam26.Gameplay.Input
             if (characterController == null)
                 characterController = GetComponent<CharacterController>();
 
+            if (playerInput == null)
+                playerInput = GetComponent<PlayerInput>();
+
+            if (playerInput != null)
+            {
+                moveAction = playerInput.actions["Move"];
+                playerInput.onActionTriggered += OnActionTriggered;
+            }
+
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
-
-            moveAction?.action.Enable();
         }
 
         private void OnDisable()
@@ -47,7 +58,14 @@ namespace ToJam26.Gameplay.Input
             if (scaleController != null)
                 scaleController.OnScaleChanged -= OnScaleChanged;
 
-            moveAction?.action.Disable();
+            if (playerInput != null)
+                playerInput.onActionTriggered -= OnActionTriggered;
+        }
+
+        private void OnActionTriggered(InputAction.CallbackContext context)
+        {
+            if (context.action.name == "Attack" && context.performed)
+                animator.SetTrigger(AnimAttack);
         }
 
         private void Update()
@@ -58,7 +76,7 @@ namespace ToJam26.Gameplay.Input
 
         private void ReadInput()
         {
-            Vector2 raw = moveAction != null ? moveAction.action.ReadValue<Vector2>() : Vector2.zero;
+            Vector2 raw = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
 
             float magnitude = raw.magnitude;
             if (magnitude < inputDeadzone)
@@ -70,7 +88,9 @@ namespace ToJam26.Gameplay.Input
             float analogScale = Mathf.InverseLerp(inputDeadzone, 1f, magnitude);
             Vector2 dir2D = raw / magnitude;
 
-            Transform cam = cameraTransform ?? Camera.main?.transform;
+            Transform cam = cameraTransform;
+            if (cam == null && Camera.main != null)
+                cam = Camera.main.transform;
             Vector3 dir;
             if (cam != null)
             {
@@ -102,7 +122,8 @@ namespace ToJam26.Gameplay.Input
 
             characterController.Move(velocity * Time.deltaTime);
 
-            animator.SetFloat("Speed", characterController.velocity.magnitude);
+            smoothedSpeed = Mathf.Lerp(smoothedSpeed, characterController.velocity.magnitude, speedDamping * Time.deltaTime);
+            animator.SetFloat(AnimSpeed, smoothedSpeed);
 
             if (movementInput.sqrMagnitude > 0f)
             {
@@ -111,30 +132,13 @@ namespace ToJam26.Gameplay.Input
             }
         }
 
-        /// <summary>
-        /// Called when the scale changes (after being sliced).
-        /// Can be used to trigger visual effects, sounds, etc.
-        /// </summary>
-        private void OnScaleChanged(float newScale, float newMass)
-        {
-            // Example: Could adjust character model size here
-            // transform.localScale = Vector3.one * newScale;
+        private void OnScaleChanged(float newScale, float newMass) { }
 
-            // Or trigger visual feedback
-            // PlayHitEffect();
-        }
-
-        /// <summary>
-        /// Gets the current movement speed (useful for animations or UI).
-        /// </summary>
         public float GetCurrentMovementSpeed()
         {
             return scaleController != null ? scaleController.GetCurrentMovementSpeed() : 0f;
         }
 
-        /// <summary>
-        /// Gets the current scale ratio (useful for UI or visual effects).
-        /// </summary>
         public float GetCurrentScaleRatio()
         {
             return scaleController != null ? scaleController.ScaleRatio : 1f;

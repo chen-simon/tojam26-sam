@@ -100,7 +100,7 @@ PositionConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_TranslationAtRest: {x: -0.004785724, y: 0.96391165, z: 0.3198207}
-  m_TranslationOffset: {x: 0, y: 0.1456505, z: 0.4910375}
+  m_TranslationOffset: {x: 0, y: 0.10006887, z: 0.3196029}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -120,7 +120,7 @@ RotationConstraint:
   serializedVersion: 2
   m_Weight: 1
   m_RotationAtRest: {x: 0, y: 0, z: 0}
-  m_RotationOffset: {x: 72.961464, y: 180, z: -180}
+  m_RotationOffset: {x: 89.75853, y: 0, z: 0}
   m_AffectRotationX: 1
   m_AffectRotationY: 1
   m_AffectRotationZ: 1
@@ -225,7 +225,7 @@ MonoBehaviour:
   originalMass: 10
   density: 1
   minScale: 0.3
-  baseMovementSpeed: 5
+  baseMovementSpeed: 10
   speedScaleCurve:
     serializedVersion: 2
     m_Curve:
@@ -292,27 +292,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.96391165
+      value: 0.9381007
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.05017929
+      value: -0.053724244
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.5390226
+      value: 0.5491136
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.5388345
+      value: -0.5287099
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.45785275
+      value: -0.44893503
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.45769295
+      value: -0.46625915
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dda3c64267c4a41c38f6ebbfeb0460fb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -389,8 +389,8 @@ PositionConstraint:
   m_Enabled: 1
   serializedVersion: 2
   m_Weight: 1
-  m_TranslationAtRest: {x: 0.13521427, y: 0.96391165, z: -0.05017929}
-  m_TranslationOffset: {x: 0.13999999, y: 0.1456505, z: 0.1210375}
+  m_TranslationAtRest: {x: 0.13521427, y: 0.9381007, z: -0.053724244}
+  m_TranslationOffset: {x: 0.13999999, y: 0.07425791, z: -0.05394204}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -409,15 +409,15 @@ RotationConstraint:
   m_Enabled: 1
   serializedVersion: 2
   m_Weight: 1
-  m_RotationAtRest: {x: -89.980225, y: 0, z: -80.670265}
-  m_RotationOffset: {x: 17.041801, y: -0.020643087, z: -80.69605}
+  m_RotationAtRest: {x: -87.83122, y: -0.0014888839, z: -80.66852}
+  m_RotationOffset: {x: -77.47009, y: -179.99974, z: 99.329704}
   m_AffectRotationX: 1
   m_AffectRotationY: 1
   m_AffectRotationZ: 1
   m_Active: 1
   m_IsLocked: 0
   m_Sources:
-  - sourceTransform: {fileID: 5078627680666659267}
+  - sourceTransform: {fileID: 6154690051008251709}
     weight: 1
 --- !u!4 &1822962624692469410 stripped
 Transform:
@@ -532,5 +532,10 @@ Transform:
 --- !u!4 &5202281772167965945 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
+  m_PrefabInstance: {fileID: 5744498314442885906}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6154690051008251709 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1932421604923968559, guid: 686b51f321a3c4e43a80c235f5b98055, type: 3}
   m_PrefabInstance: {fileID: 5744498314442885906}
   m_PrefabAsset: {fileID: 0}
