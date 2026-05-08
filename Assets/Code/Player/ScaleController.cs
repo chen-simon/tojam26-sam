@@ -89,7 +89,8 @@ namespace ToJam26.Gameplay.Player
             currentMass = originalMass;
             currentScale = 1f;
 
-            UpdateScale(1f); // Ensure initial state is set
+            // Notify listeners of initial state
+            OnScaleChanged?.Invoke(currentScale, currentMass);
         }
 
         private void Update()
