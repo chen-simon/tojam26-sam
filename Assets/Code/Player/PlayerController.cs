@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ToJam26.Gameplay.Player;
 
-namespace ToJam26.Gameplay.Input
+namespace ToJam26.Gameplay.Player
 {
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerInput))]
@@ -13,15 +12,11 @@ namespace ToJam26.Gameplay.Input
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Animator animator;
 
-        [Header("Movement")]
-        [SerializeField] private float moveSpeed = 1f;
-
         [Header("Input Settings")]
         [SerializeField] private float inputDeadzone = 0.1f;
         [SerializeField] private float rotationSpeed = 720f;
         [SerializeField] private float speedDamping = 10f;
 
-        // Components
         private CharacterController characterController;
         private PlayerInput playerInput;
         private InputAction moveAction;
@@ -64,7 +59,7 @@ namespace ToJam26.Gameplay.Input
 
         private void OnActionTriggered(InputAction.CallbackContext context)
         {
-            if (context.action.name == "Attack" && context.performed)
+            if (context.action.name == "Attack" && context.performed && animator != null)
                 animator.SetTrigger(AnimAttack);
         }
 
@@ -77,7 +72,6 @@ namespace ToJam26.Gameplay.Input
         private void ReadInput()
         {
             Vector2 raw = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
-
             float magnitude = raw.magnitude;
             if (magnitude < inputDeadzone)
             {
@@ -88,14 +82,12 @@ namespace ToJam26.Gameplay.Input
             float analogScale = Mathf.InverseLerp(inputDeadzone, 1f, magnitude);
             Vector2 dir2D = raw / magnitude;
 
-            Transform cam = cameraTransform;
-            if (cam == null && Camera.main != null)
-                cam = Camera.main.transform;
+            Transform cam = cameraTransform != null ? cameraTransform : Camera.main != null ? Camera.main.transform : null;
             Vector3 dir;
             if (cam != null)
             {
                 Vector3 forward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
-                Vector3 right   = Vector3.ProjectOnPlane(cam.right,   Vector3.up).normalized;
+                Vector3 right = Vector3.ProjectOnPlane(cam.right, Vector3.up).normalized;
                 dir = (forward * dir2D.y + right * dir2D.x).normalized;
             }
             else
@@ -108,7 +100,7 @@ namespace ToJam26.Gameplay.Input
 
         private void ApplyMovement()
         {
-            if (characterController == null || scaleController == null || scaleController.IsKnockedBack)
+            if (characterController == null || scaleController == null)
                 return;
 
             if (characterController.isGrounded && verticalVelocity < 0f)
@@ -116,23 +108,31 @@ namespace ToJam26.Gameplay.Input
             else
                 verticalVelocity += Physics.gravity.y * Time.deltaTime;
 
-            float currentSpeed = scaleController.GetCurrentMovementSpeed();
-            Vector3 velocity = movementInput * currentSpeed;
+            Vector3 planarVelocity = scaleController.IsKnockedBack
+                ? scaleController.GetKnockbackVelocity()
+                : movementInput * scaleController.GetCurrentMovementSpeed();
+
+            Vector3 velocity = planarVelocity;
             velocity.y = verticalVelocity;
 
             characterController.Move(velocity * Time.deltaTime);
 
-            smoothedSpeed = Mathf.Lerp(smoothedSpeed, characterController.velocity.magnitude, speedDamping * Time.deltaTime);
-            animator.SetFloat(AnimSpeed, smoothedSpeed);
+            if (animator != null)
+            {
+                smoothedSpeed = Mathf.Lerp(smoothedSpeed, characterController.velocity.magnitude, speedDamping * Time.deltaTime);
+                animator.SetFloat(AnimSpeed, smoothedSpeed);
+            }
 
-            if (movementInput.sqrMagnitude > 0f)
+            if (!scaleController.IsKnockedBack && movementInput.sqrMagnitude > 0f)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(movementInput);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
 
-        private void OnScaleChanged(float newScale, float newMass) { }
+        private void OnScaleChanged(float newScale, float newMass)
+        {
+        }
 
         public float GetCurrentMovementSpeed()
         {
