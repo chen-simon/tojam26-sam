@@ -74,7 +74,7 @@ namespace ToJam26.Gameplay.Slicing.External
             sliceable.SmoothVertices = originalSliceable.SmoothVertices;
 
             meshGameObject.transform.SetPositionAndRotation(originalObject.transform.position, originalObject.transform.rotation);
-            meshGameObject.transform.localScale = originalObject.transform.localScale;
+            meshGameObject.transform.localScale = originalObject.transform.lossyScale;
             meshGameObject.tag = originalObject.tag;
             meshGameObject.layer = originalObject.layer;
 
