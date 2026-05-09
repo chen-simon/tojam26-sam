@@ -297,7 +297,10 @@ namespace ToJam26.Gameplay.Player
             DisableAttackHitbox();
 
             if (animator != null)
-                animator.SetFloat("AnimSpeed", 0f);
+            {
+                // animator.SetFloat("forward_vel", 0f);
+                // animator.SetFloat("right_vel", 0f);
+            }
         }
 
         private void SetAttackHitboxesEnabled(bool enabled)
