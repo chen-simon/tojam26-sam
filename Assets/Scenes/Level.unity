@@ -1150,6 +1150,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseHitstopFrames: 3
+  maxHitstopFrames: 12
+  attackerHitstopAnimSpeed: 0.1
   victimStunAnimSpeed: 2
 --- !u!1 &2099629941
 GameObject:
