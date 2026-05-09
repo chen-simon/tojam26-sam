@@ -1,5 +1,78 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &997656062616680541
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3454284757496182883}
+  - component: {fileID: 4403011550355783299}
+  - component: {fileID: 7428625313923703804}
+  m_Layer: 0
+  m_Name: hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3454284757496182883
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 997656062616680541}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6191784806905887447}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4403011550355783299
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 997656062616680541}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.001975024, y: 0.006107211, z: 0.01280891}
+  m_Center: {x: 0, y: -0.00069639913, z: 0.009324035}
+--- !u!114 &7428625313923703804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 997656062616680541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bbd14292c9c60846a2bba0549704255, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  owner: {fileID: 1299190042604594200}
+  cuttingForce: 5
+  bladeCollider: {fileID: 4403011550355783299}
+  startEnabled: 0
+  ensureKinematicRigidbody: 1
+  sliceNormal: {x: 1, y: 0, z: 0}
+  debugMode: 1
 --- !u!1 &3341198565668040035
 GameObject:
   m_ObjectHideFlags: 0
@@ -181,15 +254,14 @@ MonoBehaviour:
   scaleController: {fileID: 9128885248361950094}
   cameraTransform: {fileID: 0}
   animator: {fileID: 5735105544015766604}
-  attackHitboxes: []
+  attackHitboxes:
+  - {fileID: 0}
   inputDeadzone: 0.1
   rotationSpeed: 15
   speedDamping: 20
   locomotionStateName: Movement
   attackStateName: Attack
   attackClipName: attack
-  attackHitboxStartNormalizedTime: 0.2
-  attackHitboxEndNormalizedTime: 0.6
 --- !u!114 &9128885248361950094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -600,7 +672,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3454284757496182883}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
       insertIndex: -1

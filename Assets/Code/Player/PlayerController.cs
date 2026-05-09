@@ -19,12 +19,10 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private float rotationSpeed = 720f;
         [SerializeField] private float speedDamping = 10f;
 
-        [Header("Attack Window")]
+        [Header("Attack Animation")]
         [SerializeField] private string locomotionStateName = "Movement";
         [SerializeField] private string attackStateName = "Attack";
         [SerializeField] private string attackClipName = "attack";
-        [SerializeField, Range(0f, 1f)] private float attackHitboxStartNormalizedTime = 0.2f;
-        [SerializeField, Range(0f, 1f)] private float attackHitboxEndNormalizedTime = 0.6f;
 
         private CharacterController characterController;
         private PlayerInput playerInput;
@@ -74,6 +72,7 @@ namespace ToJam26.Gameplay.Player
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
 
+            EnsureAnimationEventRelay();
             DisableAttackHitbox();
         }
 
@@ -105,11 +104,11 @@ namespace ToJam26.Gameplay.Player
         private void Update()
         {
             ReadInput();
-            UpdateAttackHitboxWindow();
+            UpdateAttackStateSafety();
             ApplyMovement();
         }
 
-        private void UpdateAttackHitboxWindow()
+        private void UpdateAttackStateSafety()
         {
             if (animator == null)
                 return;
@@ -117,25 +116,23 @@ namespace ToJam26.Gameplay.Player
             AnimatorStateInfo currentState = animator.GetCurrentAnimatorStateInfo(0);
             string clipName = GetCurrentClipDebugName();
             bool isAttackState = MatchesAttackState(currentState, clipName);
-            float normalizedTime = currentState.normalizedTime % 1f;
 
-            if (!isAttackState)
-            {
-                if (attackHitboxEnabled)
-                    SetAttackHitboxesEnabled(false);
+            if (wasInAttackState && !isAttackState && attackHitboxEnabled)
+                SetAttackHitboxesEnabled(false);
 
-                wasInAttackState = false;
+            wasInAttackState = isAttackState;
+        }
+
+        private void EnsureAnimationEventRelay()
+        {
+            if (animator == null)
                 return;
-            }
 
-            bool shouldEnableHitbox =
-                normalizedTime >= attackHitboxStartNormalizedTime &&
-                normalizedTime <= attackHitboxEndNormalizedTime;
+            PlayerAnimationEventRelay relay = animator.GetComponent<PlayerAnimationEventRelay>();
+            if (relay == null)
+                relay = animator.gameObject.AddComponent<PlayerAnimationEventRelay>();
 
-            if (shouldEnableHitbox != attackHitboxEnabled)
-                SetAttackHitboxesEnabled(shouldEnableHitbox);
-
-            wasInAttackState = true;
+            relay.Initialize(this);
         }
 
         private string GetCurrentClipDebugName()

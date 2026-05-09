@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using ToJam26.Gameplay.Slicing;
 
@@ -13,12 +12,11 @@ namespace ToJam26.Gameplay.Equipment
         [SerializeField] private bool startEnabled = false;
 
         [Header("Slicing Settings")]
-        [SerializeField] private float sliceDelay = 0.1f;
         [SerializeField] private Vector3 sliceNormal = Vector3.up;
         [SerializeField] private bool debugMode = false;
 
-        private readonly Dictionary<ISliceable, float> lastSliceTime = new();
         private bool slicingEnabled;
+        private bool sliceConsumedThisWindow;
 
         public float CuttingForce => cuttingForce;
         public GameObject Owner => owner;
@@ -41,29 +39,17 @@ namespace ToJam26.Gameplay.Equipment
                 bladeCollider.enabled = false;
 
             slicingEnabled = false;
+            sliceConsumedThisWindow = false;
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            TrySliceFromContact(other);
         }
 
         private void OnTriggerStay(Collider other)
         {
-            if (!slicingEnabled)
-                return;
-
-            ISliceable sliceable = other.GetComponentInParent<ISliceable>();
-            if (sliceable == null)
-                return;
-
-            if (sliceable is not Component targetComponent)
-                return;
-
-            if (IsPartOfOwner(targetComponent.gameObject) || IsPartOfBlade(other.gameObject))
-                return;
-
-            if (!CanSlice(sliceable))
-                return;
-
-            Vector3 cutPoint = CalculateCutPoint(other);
-            Vector3 cutNormal = CalculateCutNormal();
-            TrySlice(sliceable, cutPoint, cutNormal);
+            TrySliceFromContact(other);
         }
 
         public bool TrySlice(ISliceable target, Vector3 cutPoint, Vector3 cutNormal)
@@ -72,20 +58,12 @@ namespace ToJam26.Gameplay.Equipment
                 return false;
 
             target.OnSliced(cutPoint, cutNormal, cuttingForce);
-            lastSliceTime[target] = Time.time;
+            sliceConsumedThisWindow = true;
 
             if (debugMode)
                 Debug.Log($"[KnifeBlade] Sliced {target} at {cutPoint} with normal {cutNormal}", this);
 
             return true;
-        }
-
-        private bool CanSlice(ISliceable target)
-        {
-            if (!lastSliceTime.TryGetValue(target, out float lastTime))
-                return true;
-
-            return Time.time - lastTime >= sliceDelay;
         }
 
         private bool IsPartOfOwner(GameObject candidate)
@@ -112,17 +90,13 @@ namespace ToJam26.Gameplay.Equipment
 
         private Vector3 CalculateCutNormal()
         {
-            return sliceNormal.sqrMagnitude > 0.0001f ? sliceNormal.normalized : Vector3.up;
+            Vector3 localNormal = sliceNormal.sqrMagnitude > 0.0001f ? sliceNormal.normalized : Vector3.up;
+            return transform.TransformDirection(localNormal).normalized;
         }
 
         public void SetOwner(GameObject newOwner)
         {
             owner = newOwner;
-        }
-
-        public void ClearSliceCooldowns()
-        {
-            lastSliceTime.Clear();
         }
 
         public void EnableSlicing()
@@ -138,15 +112,33 @@ namespace ToJam26.Gameplay.Equipment
         public void SetSlicingEnabled(bool enabled)
         {
             slicingEnabled = enabled;
+            sliceConsumedThisWindow = false;
 
             if (bladeCollider != null)
                 bladeCollider.enabled = enabled;
 
-            if (!enabled)
-                ClearSliceCooldowns();
-
             if (debugMode)
                 Debug.Log($"[KnifeBlade] Slicing {(enabled ? "enabled" : "disabled")}", this);
+        }
+
+        private void TrySliceFromContact(Collider other)
+        {
+            if (!slicingEnabled || sliceConsumedThisWindow)
+                return;
+
+            ISliceable sliceable = other.GetComponentInParent<ISliceable>();
+            if (sliceable == null)
+                return;
+
+            if (sliceable is not Component targetComponent)
+                return;
+
+            if (IsPartOfOwner(targetComponent.gameObject) || IsPartOfBlade(other.gameObject))
+                return;
+
+            Vector3 cutPoint = CalculateCutPoint(other);
+            Vector3 cutNormal = CalculateCutNormal();
+            TrySlice(sliceable, cutPoint, cutNormal);
         }
 
         private void OnDrawGizmosSelected()
