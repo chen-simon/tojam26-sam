@@ -208,9 +208,10 @@ namespace ToJam26.Gameplay.Player
             else
                 verticalVelocity += Physics.gravity.y * Time.deltaTime;
 
+            bool inMovementState = animator != null && animator.GetCurrentAnimatorStateInfo(0).IsName(locomotionStateName);
             Vector3 planarVelocity = scaleController.IsKnockedBack
                 ? scaleController.GetKnockbackVelocity()
-                : movementInput * scaleController.GetCurrentMovementSpeed();
+                : inMovementState ? movementInput * scaleController.GetCurrentMovementSpeed() : Vector3.zero;
 
             Vector3 velocity = planarVelocity;
             velocity.y = verticalVelocity;
