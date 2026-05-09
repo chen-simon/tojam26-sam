@@ -433,6 +433,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1550303674}
   - component: {fileID: 1550303675}
+  - component: {fileID: 1550303676}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -479,6 +480,30 @@ MonoBehaviour:
   upwardDebrisImpulse: 0.25
   debrisLaunchSpeed: 1.5
   debugMode: 1
+  playerRegistrationRefreshInterval: 0.5
+--- !u!114 &1550303676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550303673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ee1309a6276dab4eb26935a3e1e4374, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerManager: {fileID: 1394973654}
+  cuttingGameManager: {fileID: 1550303675}
+  requiredPlayerCount: 2
+  maxRounds: 3
+  roundsToWin: 2
+  autoStartWhenEnoughPlayers: 1
+  roundDurationSeconds: 60
+  roundStartDelaySeconds: 1.5
+  roundEndDelaySeconds: 2
+  fallThresholdY: -10
+  debugLogs: 1
 --- !u!1 &1561410490
 GameObject:
   m_ObjectHideFlags: 0

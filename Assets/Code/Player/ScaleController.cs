@@ -29,14 +29,20 @@ namespace ToJam26.Gameplay.Player
         private float currentScale = 1f;
         private float originalVolume;
         private Mesh originalMesh;
+        private Material[] originalMaterials;
         private Vector3 currentKnockbackVelocity = Vector3.zero;
         private bool isKnockedBack;
+        private bool isEliminated;
+        private bool isInitialized;
 
         public delegate void OnScaleChangedDelegate(float newScale, float newMass);
         public OnScaleChangedDelegate OnScaleChanged;
 
         public delegate void OnSlicedDelegate(Vector3 cutPoint, Vector3 cutNormal, float damage, Vector3 attackDirection);
         public OnSlicedDelegate OnPlayerSliced;
+
+        public delegate void OnPlayerEliminatedDelegate(ScaleController player);
+        public OnPlayerEliminatedDelegate OnEliminated;
 
         public float CurrentMass => currentMass;
         public float CurrentScale => currentScale;
@@ -45,22 +51,31 @@ namespace ToJam26.Gameplay.Player
         public float MovementSpeedMultiplier => speedScaleCurve.Evaluate(MassRatio);
         public float KnockbackForceMultiplier => knockbackScaleCurve.Evaluate(MassRatio);
         public bool IsKnockedBack => isKnockedBack;
+        public bool IsEliminated => isEliminated;
         public MeshFilter SliceMeshFilter => meshFilter;
         public GameObject SliceTargetObject => meshFilter != null ? meshFilter.gameObject : gameObject;
 
         private void OnEnable()
         {
-            Initialize();
+            if (!isInitialized)
+                Initialize();
         }
 
         public void Initialize()
         {
+            if (isInitialized)
+                return;
+
             if (meshFilter == null)
                 meshFilter = GetComponentInChildren<MeshFilter>();
 
             if (meshFilter != null && meshFilter.sharedMesh != null)
             {
                 originalMesh = meshFilter.sharedMesh;
+                MeshRenderer meshRenderer = meshFilter.GetComponent<MeshRenderer>();
+                if (meshRenderer != null)
+                    originalMaterials = meshRenderer.sharedMaterials;
+
                 originalVolume = MeshVolumeCalculator.CalculateVolume(originalMesh);
                 if (originalVolume <= 0f)
                     originalVolume = 1f;
@@ -73,6 +88,8 @@ namespace ToJam26.Gameplay.Player
 
             currentMass = originalMass;
             currentScale = 1f;
+            isEliminated = false;
+            isInitialized = true;
             OnScaleChanged?.Invoke(currentScale, currentMass);
         }
 
@@ -152,6 +169,14 @@ namespace ToJam26.Gameplay.Player
                 OnPlayerEliminated();
         }
 
+        public float GetCurrentVolume()
+        {
+            if (meshFilter == null || meshFilter.sharedMesh == null)
+                return 0f;
+
+            return MeshVolumeCalculator.CalculateVolume(meshFilter.sharedMesh);
+        }
+
         public float GetCurrentMovementSpeed()
         {
             return baseMovementSpeed * MovementSpeedMultiplier;
@@ -162,19 +187,68 @@ namespace ToJam26.Gameplay.Player
             return KnockbackForceMultiplier;
         }
 
+        public void Eliminate()
+        {
+            OnPlayerEliminated();
+        }
+
         private void OnPlayerEliminated()
         {
+            if (isEliminated)
+                return;
+
+            isEliminated = true;
+            isKnockedBack = false;
+            currentKnockbackVelocity = Vector3.zero;
             Debug.Log($"[ScaleController] Player {gameObject.name} has been eliminated!", this);
+            OnEliminated?.Invoke(this);
             gameObject.SetActive(false);
         }
 
         public void ResetToOriginal()
         {
+            if (!isInitialized)
+                Initialize();
+
+            RestoreOriginalMesh();
+            RestoreOriginalMaterials();
+
             currentScale = 1f;
             currentMass = originalMass;
-            OnScaleChanged?.Invoke(currentScale, currentMass);
             isKnockedBack = false;
             currentKnockbackVelocity = Vector3.zero;
+            isEliminated = false;
+
+            OnScaleChanged?.Invoke(currentScale, currentMass);
+        }
+
+        private void RestoreOriginalMesh()
+        {
+            if (meshFilter == null || originalMesh == null)
+                return;
+
+            Mesh currentMesh = meshFilter.sharedMesh;
+            if (currentMesh != null && currentMesh != originalMesh)
+                Destroy(currentMesh);
+
+            meshFilter.mesh = Instantiate(originalMesh);
+
+            MeshCollider meshCollider = meshFilter.GetComponent<MeshCollider>();
+            if (meshCollider == null)
+                meshCollider = meshFilter.gameObject.AddComponent<MeshCollider>();
+
+            meshCollider.sharedMesh = meshFilter.sharedMesh;
+            meshCollider.convex = true;
+        }
+
+        private void RestoreOriginalMaterials()
+        {
+            if (meshFilter == null || originalMaterials == null || originalMaterials.Length == 0)
+                return;
+
+            MeshRenderer meshRenderer = meshFilter.GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+                meshRenderer.materials = originalMaterials;
         }
     }
 }

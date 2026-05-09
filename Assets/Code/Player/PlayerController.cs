@@ -33,6 +33,7 @@ namespace ToJam26.Gameplay.Player
         private float smoothedSpeed;
         private bool attackHitboxEnabled;
         private bool wasInAttackState;
+        private bool gameplayEnabled = true;
 
         private static readonly int AnimSpeed = Animator.StringToHash("Speed");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
@@ -89,7 +90,7 @@ namespace ToJam26.Gameplay.Player
 
         private void HandleAttack(InputAction.CallbackContext context)
         {
-            if (AbleToPerformAttack())
+            if (gameplayEnabled && AbleToPerformAttack())
             {
                 DisableAttackHitbox();
                 animator.SetTrigger(AnimAttack);
@@ -103,6 +104,20 @@ namespace ToJam26.Gameplay.Player
 
         private void Update()
         {
+            if (!gameplayEnabled)
+            {
+                movementInput = Vector3.zero;
+                UpdateAttackStateSafety();
+
+                if (animator != null)
+                {
+                    smoothedSpeed = Mathf.Lerp(smoothedSpeed, 0f, speedDamping * Time.deltaTime);
+                    animator.SetFloat(AnimSpeed, smoothedSpeed);
+                }
+
+                return;
+            }
+
             ReadInput();
             UpdateAttackStateSafety();
             ApplyMovement();
@@ -238,6 +253,22 @@ namespace ToJam26.Gameplay.Player
         public void DisableAttackHitbox()
         {
             SetAttackHitboxesEnabled(false);
+        }
+
+        public void SetGameplayEnabled(bool enabled)
+        {
+            gameplayEnabled = enabled;
+
+            if (enabled)
+                return;
+
+            movementInput = Vector3.zero;
+            verticalVelocity = 0f;
+            smoothedSpeed = 0f;
+            DisableAttackHitbox();
+
+            if (animator != null)
+                animator.SetFloat(AnimSpeed, 0f);
         }
 
         private void SetAttackHitboxesEnabled(bool enabled)

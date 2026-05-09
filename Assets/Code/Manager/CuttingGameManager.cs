@@ -30,6 +30,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float playerRegistrationRefreshInterval = 0.5f;
 
         private readonly Dictionary<ScaleController, ScaleController.OnSlicedDelegate> playerSliceHandlers = new();
+        private readonly List<GameObject> detachedPieces = new();
         private float playerRegistrationRefreshTimer;
 
         private void OnEnable()
@@ -204,6 +205,7 @@ namespace ToJam26.Gameplay.Manager
             Vector3 impulse = pushDirection * Mathf.Max(minimumDebrisImpulse, cuttingForce * debrisImpulseFactor)
                               + Vector3.up * upwardDebrisImpulse;
             detachedBody.AddForce(impulse, ForceMode.Impulse);
+            detachedPieces.Add(detachedPiece);
         }
 
         private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 attackDirection, float cuttingForce)
@@ -305,6 +307,23 @@ namespace ToJam26.Gameplay.Manager
             ScaleController[] playerScaleControllers = FindObjectsByType<ScaleController>(FindObjectsSortMode.None);
             foreach (ScaleController player in playerScaleControllers)
                 player.ResetToOriginal();
+
+            ClearDetachedPieces();
+        }
+
+        public void ClearDetachedPieces()
+        {
+            if (detachedPieces.Count == 0)
+                return;
+
+            for (int index = detachedPieces.Count - 1; index >= 0; index--)
+            {
+                GameObject detachedPiece = detachedPieces[index];
+                if (detachedPiece != null)
+                    Destroy(detachedPiece);
+            }
+
+            detachedPieces.Clear();
         }
     }
 }
