@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Unity.Cinemachine;
 using ToJam26.Gameplay.Player;
 
 namespace ToJam26.Gameplay.Manager
@@ -9,6 +10,7 @@ namespace ToJam26.Gameplay.Manager
         public static HitstopManager Instance { get; private set; }
 
         [SerializeField] private float baseHitstopFrames = 4f;
+        [SerializeField] private float maxHitstopFrames = 12f;
         [SerializeField] private float victimStunAnimSpeed = 1f;
 
         private Coroutine activeHitstop;
@@ -35,7 +37,8 @@ namespace ToJam26.Gameplay.Manager
 
         public void TriggerHitstop(Animator victimAnimator, ScaleController victimScale, float knockbackMultiplier)
         {
-            float duration = (baseHitstopFrames / 60f) * Mathf.Max(knockbackMultiplier, 0.1f);
+            float frames = Mathf.Min(baseHitstopFrames * Mathf.Max(knockbackMultiplier, 0.1f), maxHitstopFrames);
+            float duration = frames / 60f;
 
             if (activeHitstop != null)
             {
@@ -63,6 +66,8 @@ namespace ToJam26.Gameplay.Manager
             if (victimScale != null)
                 victimScale.PauseKnockback();
 
+            SetCameraShake(true);
+
             yield return new WaitForSeconds(duration);
 
             ClearHitstopState();
@@ -86,7 +91,20 @@ namespace ToJam26.Gameplay.Manager
                 currentVictimScale = null;
             }
 
+            SetCameraShake(false);
             activeHitstop = null;
+        }
+
+        private void SetCameraShake(bool enabled)
+        {
+            PlayerCameraController[] cams = FindObjectsByType<PlayerCameraController>(FindObjectsSortMode.None);
+            foreach (PlayerCameraController cam in cams)
+            {
+                CinemachineBasicMultiChannelPerlin noise =
+                    cam.GetComponent<CinemachineBasicMultiChannelPerlin>();
+                if (noise != null)
+                    noise.enabled = enabled;
+            }
         }
     }
 }
