@@ -12,6 +12,9 @@ namespace ToJam26.Gameplay.Equipment
         [SerializeField] private Collider bladeCollider;
         [SerializeField] private bool startEnabled = false;
 
+        [SerializeField] private GameObject hitParticlePrefab;
+        [SerializeField] private GameObject cutParticlePrefab;
+
         [Header("Slicing Settings")]
         [SerializeField] private Vector3 sliceNormal = Vector3.up;
         [FormerlySerializedAs("debugMode")]
@@ -66,6 +69,9 @@ namespace ToJam26.Gameplay.Equipment
         {
             if (target == null)
                 return false;
+            
+            Instantiate(hitParticlePrefab, cutPoint, Quaternion.identity);
+            Instantiate(cutParticlePrefab, cutPoint, Quaternion.identity);
 
             string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
             Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
