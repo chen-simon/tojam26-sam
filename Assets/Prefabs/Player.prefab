@@ -222,8 +222,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.00084283005, y: 0.006107211, z: 0.01280891}
-  m_Center: {x: -0.000022413271, y: -0.00069639913, z: 0.009324035}
+  m_Size: {x: 0.0015250356, y: 0.0061072116, z: 0.018123055}
+  m_Center: {x: 0.0000058013698, y: -0.00069639884, z: 0.0066669933}
 --- !u!114 &7428625313923703804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1099,6 +1099,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: c8b09ad63e9aa41c2bb4fa7e053ef84b, type: 2}
@@ -1106,6 +1110,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 398d1daa514714beda873b3dcc1b047e, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6cc46ce825c4ec346a2fd80a87ad39ea, type: 2}
     - target: {fileID: 919132149155446097, guid: 8d18be5d6740344978e422b7e6068c69, type: 3}
       propertyPath: m_Name
       value: cheese_knife
@@ -1197,9 +1205,17 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: d78a1cbbb52d647f4a034d1cd2fe6d0a, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d78a1cbbb52d647f4a034d1cd2fe6d0a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 8c1f33b15be184069b8823b7de1b41a6, type: 2}
+    - target: {fileID: -7511558181221131132, guid: d78a1cbbb52d647f4a034d1cd2fe6d0a, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6cc46ce825c4ec346a2fd80a87ad39ea, type: 2}
     - target: {fileID: 919132149155446097, guid: d78a1cbbb52d647f4a034d1cd2fe6d0a, type: 3}
       propertyPath: m_Name
       value: swiss_wedge
