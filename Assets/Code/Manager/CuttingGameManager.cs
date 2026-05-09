@@ -2,6 +2,7 @@ using UnityEngine;
 using ToJam26.Gameplay.Player;
 using ToJam26.Gameplay.Utility;
 using ToJam26.Gameplay.Slicing.External;
+using System.Collections.Generic;
 
 namespace ToJam26.Gameplay.Manager
 {
@@ -25,14 +26,62 @@ namespace ToJam26.Gameplay.Manager
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
 
-        private void Start()
+        [Header("Runtime Registration")]
+        [SerializeField] private float playerRegistrationRefreshInterval = 0.5f;
+
+        private readonly Dictionary<ScaleController, ScaleController.OnSlicedDelegate> playerSliceHandlers = new();
+        private float playerRegistrationRefreshTimer;
+
+        private void OnEnable()
         {
-            ScaleController[] playerScaleControllers = FindObjectsByType<ScaleController>(FindObjectsSortMode.None);
-            foreach (ScaleController scaleController in playerScaleControllers)
-            {
-                scaleController.OnPlayerSliced += (cutPoint, cutNormal, force, attackDirection) =>
-                    TrySlicePlayer(scaleController, cutPoint, cutNormal, force, attackDirection);
-            }
+            RegisterExistingPlayers();
+            playerRegistrationRefreshTimer = 0f;
+        }
+
+        private void OnDisable()
+        {
+            UnregisterAllPlayers();
+        }
+
+        private void Update()
+        {
+            playerRegistrationRefreshTimer -= Time.deltaTime;
+            if (playerRegistrationRefreshTimer > 0f)
+                return;
+
+            playerRegistrationRefreshTimer = Mathf.Max(0.1f, playerRegistrationRefreshInterval);
+            RegisterExistingPlayers();
+            CleanupStalePlayers();
+        }
+
+        public void RegisterPlayer(ScaleController scaleController)
+        {
+            if (scaleController == null || playerSliceHandlers.ContainsKey(scaleController))
+                return;
+
+            ScaleController.OnSlicedDelegate handler = (cutPoint, cutNormal, force, attackDirection) =>
+                TrySlicePlayer(scaleController, cutPoint, cutNormal, force, attackDirection);
+
+            scaleController.OnPlayerSliced += handler;
+            playerSliceHandlers.Add(scaleController, handler);
+
+            if (debugMode)
+                Debug.Log($"[CuttingGameManager] Registered player slicer: {scaleController.name}", scaleController);
+        }
+
+        public void UnregisterPlayer(ScaleController scaleController)
+        {
+            if (scaleController == null)
+                return;
+
+            if (!playerSliceHandlers.TryGetValue(scaleController, out ScaleController.OnSlicedDelegate handler))
+                return;
+
+            scaleController.OnPlayerSliced -= handler;
+            playerSliceHandlers.Remove(scaleController);
+
+            if (debugMode)
+                Debug.Log($"[CuttingGameManager] Unregistered player slicer: {scaleController.name}", scaleController);
         }
 
         public bool TrySlicePlayer(
@@ -184,6 +233,49 @@ namespace ToJam26.Gameplay.Manager
             sliceable.ShareVertices = shareVertices;
             sliceable.SmoothVertices = smoothVertices;
             sliceable.UseGravity = true;
+        }
+
+        private void RegisterExistingPlayers()
+        {
+            ScaleController[] playerScaleControllers = FindObjectsByType<ScaleController>(FindObjectsSortMode.None);
+            foreach (ScaleController scaleController in playerScaleControllers)
+                RegisterPlayer(scaleController);
+        }
+
+        private void CleanupStalePlayers()
+        {
+            if (playerSliceHandlers.Count == 0)
+                return;
+
+            List<ScaleController> stalePlayers = null;
+            foreach (KeyValuePair<ScaleController, ScaleController.OnSlicedDelegate> entry in playerSliceHandlers)
+            {
+                if (entry.Key != null)
+                    continue;
+
+                stalePlayers ??= new List<ScaleController>();
+                stalePlayers.Add(entry.Key);
+            }
+
+            if (stalePlayers == null)
+                return;
+
+            foreach (ScaleController stalePlayer in stalePlayers)
+                playerSliceHandlers.Remove(stalePlayer);
+        }
+
+        private void UnregisterAllPlayers()
+        {
+            if (playerSliceHandlers.Count == 0)
+                return;
+
+            foreach (KeyValuePair<ScaleController, ScaleController.OnSlicedDelegate> entry in playerSliceHandlers)
+            {
+                if (entry.Key != null)
+                    entry.Key.OnPlayerSliced -= entry.Value;
+            }
+
+            playerSliceHandlers.Clear();
         }
 
         private static void DestroyTemporarySlices(GameObject[] sliceResults)

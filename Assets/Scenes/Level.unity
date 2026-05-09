@@ -471,13 +471,14 @@ MonoBehaviour:
   reverseWireTriangles: 0
   shareVertices: 0
   smoothVertices: 0
-  insideSliceMaterial: {fileID: 0}
+  insideSliceMaterial: {fileID: 2100000, guid: 8c1f33b15be184069b8823b7de1b41a6, type: 2}
   debrisMassRatio: 0.35
-  minimumDebrisMass: 0.05
+  minimumDebrisMass: 0.01
   debrisImpulseFactor: 0.25
   minimumDebrisImpulse: 0.5
   upwardDebrisImpulse: 0.25
-  debugMode: 0
+  debrisLaunchSpeed: 1.5
+  debugMode: 1
 --- !u!1 &1561410490
 GameObject:
   m_ObjectHideFlags: 0
