@@ -96,10 +96,10 @@ namespace ToJam26.Gameplay.Slicing.External
             if (side == MeshSide.Positive)
             {
                 AddTrianglesNormalsAndUvs(
-                    ref positiveSideVertices,
-                    ref positiveSideTriangles,
-                    ref positiveSideNormals,
-                    ref positiveSideUvs,
+                    positiveSideVertices,
+                    positiveSideTriangles,
+                    positiveSideNormals,
+                    positiveSideUvs,
                     vertex1,
                     normal1,
                     uv1,
@@ -115,10 +115,10 @@ namespace ToJam26.Gameplay.Slicing.External
             else
             {
                 AddTrianglesNormalsAndUvs(
-                    ref negativeSideVertices,
-                    ref negativeSideTriangles,
-                    ref negativeSideNormals,
-                    ref negativeSideUvs,
+                    negativeSideVertices,
+                    negativeSideTriangles,
+                    negativeSideNormals,
+                    negativeSideUvs,
                     vertex1,
                     normal1,
                     uv1,
@@ -134,10 +134,10 @@ namespace ToJam26.Gameplay.Slicing.External
         }
 
         private void AddTrianglesNormalsAndUvs(
-            ref List<Vector3> vertices,
-            ref List<int> triangles,
-            ref List<Vector3> normals,
-            ref List<Vector2> uvs,
+            List<Vector3> vertices,
+            List<int> triangles,
+            List<Vector3> normals,
+            List<Vector2> uvs,
             Vector3 vertex1,
             Vector3? normal1,
             Vector2 uv1,
@@ -153,7 +153,7 @@ namespace ToJam26.Gameplay.Slicing.External
             int tri1Index = vertices.IndexOf(vertex1);
 
             if (addFirst)
-                ShiftTriangleIndices(ref triangles);
+                ShiftTriangleIndices(triangles);
 
             if (tri1Index > -1 && shareVertices)
             {
@@ -162,7 +162,7 @@ namespace ToJam26.Gameplay.Slicing.External
             else
             {
                 normal1 ??= ComputeNormal(vertex1, vertex2, vertex3);
-                AddVertNormalUv(ref vertices, ref normals, ref uvs, ref triangles, vertex1, normal1.Value, uv1, addFirst ? 0 : null);
+                AddVertNormalUv(vertices, normals, uvs, triangles, vertex1, normal1.Value, uv1, addFirst ? 0 : null);
             }
 
             int tri2Index = vertices.IndexOf(vertex2);
@@ -173,7 +173,7 @@ namespace ToJam26.Gameplay.Slicing.External
             else
             {
                 normal2 ??= ComputeNormal(vertex2, vertex3, vertex1);
-                AddVertNormalUv(ref vertices, ref normals, ref uvs, ref triangles, vertex2, normal2.Value, uv2, addFirst ? 1 : null);
+                AddVertNormalUv(vertices, normals, uvs, triangles, vertex2, normal2.Value, uv2, addFirst ? 1 : null);
             }
 
             int tri3Index = vertices.IndexOf(vertex3);
@@ -184,15 +184,15 @@ namespace ToJam26.Gameplay.Slicing.External
             else
             {
                 normal3 ??= ComputeNormal(vertex3, vertex1, vertex2);
-                AddVertNormalUv(ref vertices, ref normals, ref uvs, ref triangles, vertex3, normal3.Value, uv3, addFirst ? 2 : null);
+                AddVertNormalUv(vertices, normals, uvs, triangles, vertex3, normal3.Value, uv3, addFirst ? 2 : null);
             }
         }
 
         private static void AddVertNormalUv(
-            ref List<Vector3> vertices,
-            ref List<Vector3> normals,
-            ref List<Vector2> uvs,
-            ref List<int> triangles,
+            List<Vector3> vertices,
+            List<Vector3> normals,
+            List<Vector2> uvs,
+            List<int> triangles,
             Vector3 vertex,
             Vector3 normal,
             Vector2 uv,
@@ -215,7 +215,7 @@ namespace ToJam26.Gameplay.Slicing.External
             }
         }
 
-        private static void ShiftTriangleIndices(ref List<int> triangles)
+        private static void ShiftTriangleIndices(List<int> triangles)
         {
             for (int j = 0; j < triangles.Count; j += 3)
             {
@@ -446,11 +446,11 @@ namespace ToJam26.Gameplay.Slicing.External
 
         private void SmoothVertices()
         {
-            DoSmoothing(ref positiveSideVertices, ref positiveSideNormals, ref positiveSideTriangles);
-            DoSmoothing(ref negativeSideVertices, ref negativeSideNormals, ref negativeSideTriangles);
+            DoSmoothing(positiveSideVertices, positiveSideNormals, positiveSideTriangles);
+            DoSmoothing(negativeSideVertices, negativeSideNormals, negativeSideTriangles);
         }
 
-        private static void DoSmoothing(ref List<Vector3> vertices, ref List<Vector3> normals, ref List<int> triangles)
+        private static void DoSmoothing(List<Vector3> vertices, List<Vector3> normals, List<int> triangles)
         {
             for (int i = 0; i < normals.Count; i++)
                 normals[i] = Vector3.zero;
