@@ -19,6 +19,7 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private float inputDeadzone = 0.1f;
         [SerializeField] private float rotationSpeed = 720f;
         [SerializeField] private float speedDamping = 10f;
+        [SerializeField] private float rotationVelContribution = 0.01f;
 
         [Header("Attack Animation")]
         [SerializeField] private string locomotionStateName = "Movement";
@@ -31,12 +32,15 @@ namespace ToJam26.Gameplay.Player
         private InputAction attackAction;
         private Vector3 movementInput;
         private float verticalVelocity;
-        private float smoothedSpeed;
+        private float smoothedForwardVel;
+        private float smoothedRightVel;
+        private float previousYRotation;
         private bool attackHitboxEnabled;
         private bool wasInAttackState;
         private bool gameplayEnabled = true;
 
-        private static readonly int AnimSpeed = Animator.StringToHash("Speed");
+        private static readonly int AnimForwardVel = Animator.StringToHash("forward_vel");
+        private static readonly int AnimRightVel = Animator.StringToHash("right_vel");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
 
         private void OnEnable()
@@ -109,12 +113,6 @@ namespace ToJam26.Gameplay.Player
             {
                 movementInput = Vector3.zero;
                 UpdateAttackStateSafety();
-
-                if (animator != null)
-                {
-                    smoothedSpeed = Mathf.Lerp(smoothedSpeed, 0f, speedDamping * Time.deltaTime);
-                    animator.SetFloat(AnimSpeed, smoothedSpeed);
-                }
 
                 return;
             }
@@ -221,8 +219,15 @@ namespace ToJam26.Gameplay.Player
 
             if (animator != null)
             {
-                smoothedSpeed = Mathf.Lerp(smoothedSpeed, characterController.velocity.magnitude, speedDamping * Time.deltaTime);
-                animator.SetFloat(AnimSpeed, smoothedSpeed);
+                Vector3 flatVel = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z);
+                float rawForward = Vector3.Dot(flatVel, transform.forward);
+                float angularVel = Mathf.DeltaAngle(previousYRotation, transform.eulerAngles.y) / Time.deltaTime;
+                previousYRotation = transform.eulerAngles.y;
+                float rawRight = Vector3.Dot(flatVel, transform.right) + angularVel * rotationVelContribution;
+                smoothedForwardVel = Mathf.Lerp(smoothedForwardVel, rawForward, speedDamping * Time.deltaTime);
+                smoothedRightVel = Mathf.Lerp(smoothedRightVel, rawRight, speedDamping * Time.deltaTime);
+                animator.SetFloat(AnimForwardVel, smoothedForwardVel);
+                animator.SetFloat(AnimRightVel, smoothedRightVel);
             }
 
             bool isFreeLook = playerCameraController == null || playerCameraController.IsFreeLook;
@@ -275,11 +280,10 @@ namespace ToJam26.Gameplay.Player
 
             movementInput = Vector3.zero;
             verticalVelocity = 0f;
-            smoothedSpeed = 0f;
             DisableAttackHitbox();
 
             if (animator != null)
-                animator.SetFloat(AnimSpeed, 0f);
+                animator.SetFloat("AnimSpeed", 0f);
         }
 
         private void SetAttackHitboxesEnabled(bool enabled)
