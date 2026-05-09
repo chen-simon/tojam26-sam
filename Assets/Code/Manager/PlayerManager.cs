@@ -10,6 +10,8 @@
         private List<Transform> startingPoints;
         [SerializeField]
         private List<LayerMask> playerLayers;
+        
+        [SerializeField] private Transform playersParent;
 
         private PlayerInputManager playerInputManager;
 
@@ -32,8 +34,9 @@
         {
             players.Add(player);
 
-
+            player.transform.parent = playersParent;
             player.transform.position = startingPoints[players.Count - 1].position;
+            player.gameObject.name = "P" + players.Count.ToString();
 
             //convert layer mask (bit) to an integer 
             int layerToAdd = (int)Mathf.Log(playerLayers[players.Count - 1].value, 2);
