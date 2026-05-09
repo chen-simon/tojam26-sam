@@ -72,6 +72,9 @@ public class PlayerManager : MonoBehaviour
 
         player.GetComponentInChildren<CinemachineBrain>().ChannelMask = (OutputChannels)channel;
 
+        if (vcam.TryGetComponent<PlayerCameraController>(out var camController))
+            camController.SetSpawnOrientation(startPoint);
+
         var cam = player.GetComponentInChildren<Camera>();
         foreach (var mask in playerLayers)
             cam.cullingMask &= ~mask.value;
@@ -122,6 +125,10 @@ public class PlayerManager : MonoBehaviour
 
         if (characterController != null)
             characterController.enabled = true;
+
+        var vcam = player.GetComponentInChildren<CinemachineCamera>();
+        if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
+            camController.SetSpawnOrientation(spawnPoint);
 
         PlayerController playerController = player.GetComponent<PlayerController>();
         playerController?.DisableAttackHitbox();
