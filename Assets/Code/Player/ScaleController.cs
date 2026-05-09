@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using ToJam26.Gameplay.Utility;
 using ToJam26.Gameplay.Slicing;
 
@@ -17,7 +18,8 @@ namespace ToJam26.Gameplay.Player
         [Header("Knockback Settings")]
         [SerializeField] private float baseKnockbackForce = 10f;
         [SerializeField] private AnimationCurve knockbackScaleCurve = AnimationCurve.Linear(0, 2f, 1, 0.5f);
-        [SerializeField] private float knockbackDuration = 0.2f;
+        [FormerlySerializedAs("knockbackDuration")]
+        [SerializeField] private float knockbackDeceleration = 25f;
 
         [Header("Mesh Slicing")]
         [SerializeField] private MeshFilter meshFilter;
@@ -27,9 +29,7 @@ namespace ToJam26.Gameplay.Player
         private float currentScale = 1f;
         private float originalVolume;
         private Mesh originalMesh;
-        private float knockbackTimer;
         private Vector3 currentKnockbackVelocity = Vector3.zero;
-        private Vector3 initialKnockbackVelocity = Vector3.zero;
         private bool isKnockedBack;
 
         public delegate void OnScaleChangedDelegate(float newScale, float newMass);
@@ -81,16 +81,16 @@ namespace ToJam26.Gameplay.Player
             if (!isKnockedBack)
                 return;
 
-            knockbackTimer -= Time.deltaTime;
-            float normalizedTime = knockbackDuration > 0f ? knockbackTimer / knockbackDuration : 0f;
-            currentKnockbackVelocity = Vector3.Lerp(Vector3.zero, initialKnockbackVelocity, Mathf.Clamp01(normalizedTime));
+            float decelerationPerSecond = Mathf.Max(0f, knockbackDeceleration);
+            currentKnockbackVelocity = Vector3.MoveTowards(
+                currentKnockbackVelocity,
+                Vector3.zero,
+                decelerationPerSecond * Time.deltaTime);
 
-            if (knockbackTimer <= 0f)
+            if (currentKnockbackVelocity.sqrMagnitude <= 0.0001f)
             {
                 isKnockedBack = false;
-                knockbackTimer = 0f;
                 currentKnockbackVelocity = Vector3.zero;
-                initialKnockbackVelocity = Vector3.zero;
             }
         }
 
@@ -110,9 +110,7 @@ namespace ToJam26.Gameplay.Player
 
             Vector3 knockbackVelocity = planarDirection.normalized * knockbackMagnitude;
             currentKnockbackVelocity = knockbackVelocity;
-            initialKnockbackVelocity = knockbackVelocity;
             isKnockedBack = true;
-            knockbackTimer = knockbackDuration;
         }
 
         public Vector3 GetKnockbackVelocity()
@@ -176,9 +174,7 @@ namespace ToJam26.Gameplay.Player
             currentMass = originalMass;
             OnScaleChanged?.Invoke(currentScale, currentMass);
             isKnockedBack = false;
-            knockbackTimer = 0f;
             currentKnockbackVelocity = Vector3.zero;
-            initialKnockbackVelocity = Vector3.zero;
         }
     }
 }

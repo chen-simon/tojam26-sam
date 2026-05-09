@@ -255,7 +255,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 0}
   animator: {fileID: 5735105544015766604}
   attackHitboxes:
-  - {fileID: 0}
+  - {fileID: 7428625313923703804}
   inputDeadzone: 0.1
   rotationSpeed: 15
   speedDamping: 20
@@ -301,7 +301,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  baseKnockbackForce: 10
+  baseKnockbackForce: 15
   knockbackScaleCurve:
     serializedVersion: 2
     m_Curve:
@@ -326,7 +326,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  knockbackDuration: 0.5
+  knockbackDeceleration: 80
   meshFilter: {fileID: 3378734687480754439}
   useVolumeCalculation: 1
 --- !u!114 &4871964117367462877
