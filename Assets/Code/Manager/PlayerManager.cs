@@ -20,6 +20,7 @@ public class PlayerManager : MonoBehaviour
     public event PlayerJoinedDelegate PlayerJoined;
 
     public IReadOnlyList<PlayerInput> Players => players;
+    private int MaxPlayers => Mathf.Min(startingPoints.Count, playerLayers.Count);
 
     private void Awake()
     {
@@ -29,6 +30,7 @@ public class PlayerManager : MonoBehaviour
     private void OnEnable()
     {
         playerInputManager.onPlayerJoined += AddPlayer;
+        RefreshJoiningState();
     }
 
     private void OnDisable()
@@ -44,9 +46,11 @@ public class PlayerManager : MonoBehaviour
         if (players.Contains(player))
             return;
 
-        if (players.Count >= startingPoints.Count || players.Count >= playerLayers.Count)
+        if (players.Count >= MaxPlayers)
         {
-            Debug.LogWarning("[PlayerManager] Not enough spawn points or player layers configured for another player.", this);
+            Debug.LogWarning("[PlayerManager] Rejected extra player join beyond max supported player count.", this);
+            Destroy(player.gameObject);
+            RefreshJoiningState();
             return;
         }
 
@@ -81,6 +85,7 @@ public class PlayerManager : MonoBehaviour
         cam.cullingMask |= 1 << layerToAdd;
 
         PlayerJoined?.Invoke(player);
+        RefreshJoiningState();
     }
 
     public void RespawnAllPlayers()
@@ -145,6 +150,17 @@ public class PlayerManager : MonoBehaviour
             if (playerController != null)
                 playerController.SetGameplayEnabled(enabled);
         }
+    }
+
+    private void RefreshJoiningState()
+    {
+        if (playerInputManager == null)
+            return;
+
+        if (players.Count >= MaxPlayers)
+            playerInputManager.DisableJoining();
+        else
+            playerInputManager.EnableJoining();
     }
 }
 
