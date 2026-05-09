@@ -83,6 +83,7 @@ public class PlayerCameraController : MonoBehaviour
 
     public void SetSpawnOrientation(Transform spawnPoint)
     {
+        if (!_orbital) return;
         _orbital.HorizontalAxis.Value = spawnPoint.eulerAngles.y;
         _orbital.VerticalAxis.Value = defaultVertical;
     }
