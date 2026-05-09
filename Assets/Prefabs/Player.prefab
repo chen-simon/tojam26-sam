@@ -637,6 +637,7 @@ MonoBehaviour:
   animator: {fileID: 5735105544015766604}
   attackHitboxes:
   - {fileID: 7428625313923703804}
+  playerCameraController: {fileID: 4280379428734956454}
   inputDeadzone: 0.1
   rotationSpeed: 15
   speedDamping: 20

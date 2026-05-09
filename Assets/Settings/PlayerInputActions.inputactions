@@ -32,6 +32,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleLook",
+                    "type": "Button",
+                    "id": "bdbe43ce-7fa3-4886-abcd-55ff1fbe0347",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -169,6 +178,17 @@
                 },
                 {
                     "name": "",
+                    "id": "df7cb632-91c8-4338-a389-6b377e7d9bb4",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "831c4f6b-b6a3-42f5-85de-6d77bc09ac13",
                     "path": "<Gamepad>/rightShoulder",
                     "interactions": "",
@@ -208,6 +228,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "40bb7f7d-7fba-4553-bedb-239433d5775a",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleLook",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a820d78c-c8bb-4750-b52f-b42bf41971ed",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleLook",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
