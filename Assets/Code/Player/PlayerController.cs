@@ -13,6 +13,7 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Animator animator;
         [SerializeField] private KnifeBlade[] attackHitboxes;
+        [SerializeField] private PlayerCameraController playerCameraController;
 
         [Header("Input Settings")]
         [SerializeField] private float inputDeadzone = 0.1f;
@@ -224,10 +225,20 @@ namespace ToJam26.Gameplay.Player
                 animator.SetFloat(AnimSpeed, smoothedSpeed);
             }
 
-            if (!scaleController.IsKnockedBack && movementInput.sqrMagnitude > 0f)
+            bool isFreeLook = playerCameraController == null || playerCameraController.IsFreeLook;
+            if (!scaleController.IsKnockedBack)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(movementInput);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                Vector3 facingDir = Vector3.zero;
+                if (!isFreeLook && cameraTransform != null)
+                    facingDir = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
+                else if (movementInput.sqrMagnitude > 0f)
+                    facingDir = movementInput;
+
+                if (facingDir.sqrMagnitude > 0f)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(facingDir);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                }
             }
         }
 

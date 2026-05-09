@@ -30,6 +30,10 @@ public class PlayerCameraController : MonoBehaviour
 
     private CinemachineOrbitalFollow _orbital;
     private InputAction _lookAction;
+    private InputAction _toggleLookAction;
+    private bool _isFreeLook = false;
+
+    public bool IsFreeLook => _isFreeLook;
 
     void Awake()
     {
@@ -41,9 +45,15 @@ public class PlayerCameraController : MonoBehaviour
         if (playerInput != null && playerInput.actions != null)
         {
             _lookAction = playerInput.actions.FindAction("Look", throwIfNotFound: false);
+            _toggleLookAction = playerInput.actions.FindAction("ToggleLook", throwIfNotFound: false);
 
             if (_lookAction == null)
                 Debug.LogWarning("[PlayerCameraController] PlayerInput is missing a 'Look' action.", this);
+
+            if (_toggleLookAction == null)
+                Debug.LogWarning("[PlayerCameraController] PlayerInput is missing a 'ToggleLook' action.", this);
+            else
+                _toggleLookAction.performed += HandleToggleLook;
         }
         else
         {
@@ -53,7 +63,16 @@ public class PlayerCameraController : MonoBehaviour
 
     void OnDisable()
     {
+        if (_toggleLookAction != null)
+            _toggleLookAction.performed -= HandleToggleLook;
+
         _lookAction = null;
+        _toggleLookAction = null;
+    }
+
+    private void HandleToggleLook(InputAction.CallbackContext context)
+    {
+        _isFreeLook = !_isFreeLook;
     }
 
     void Update()
@@ -69,6 +88,9 @@ public class PlayerCameraController : MonoBehaviour
                 _orbital.VerticalAxis.Range.y
             );
         }
+
+        if (!_isFreeLook)
+            return;
 
         Vector3 flatVel = player.velocity;
         flatVel.y = 0f;
