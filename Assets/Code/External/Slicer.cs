@@ -5,7 +5,7 @@ namespace ToJam26.Gameplay.Slicing.External
 {
     public static class Slicer
     {
-        public static GameObject[] Slice(Plane plane, GameObject objectToCut)
+        public static GameObject[] Slice(Plane plane, GameObject objectToCut, Material insideMaterial = null)
         {
             if (objectToCut == null)
                 throw new ArgumentNullException(nameof(objectToCut));
@@ -49,6 +49,8 @@ namespace ToJam26.Gameplay.Slicing.External
 
             positiveObject.GetComponent<MeshFilter>().mesh = positiveSideMesh;
             negativeObject.GetComponent<MeshFilter>().mesh = negativeSideMesh;
+            ConfigureMaterials(positiveObject.GetComponent<MeshRenderer>(), originalMaterials: meshRenderer.materials, positiveSideMesh, insideMaterial);
+            ConfigureMaterials(negativeObject.GetComponent<MeshRenderer>(), originalMaterials: meshRenderer.materials, negativeSideMesh, insideMaterial);
 
             SetupMeshCollider(positiveObject, positiveSideMesh);
             SetupMeshCollider(negativeObject, negativeSideMesh);
@@ -58,7 +60,6 @@ namespace ToJam26.Gameplay.Slicing.External
 
         private static GameObject CreateMeshGameObject(GameObject originalObject)
         {
-            Material[] originalMaterials = originalObject.GetComponent<MeshRenderer>().materials;
             Sliceable originalSliceable = originalObject.GetComponent<Sliceable>();
 
             GameObject meshGameObject = new GameObject();
@@ -72,7 +73,6 @@ namespace ToJam26.Gameplay.Slicing.External
             sliceable.ShareVertices = originalSliceable.ShareVertices;
             sliceable.SmoothVertices = originalSliceable.SmoothVertices;
 
-            meshGameObject.GetComponent<MeshRenderer>().materials = originalMaterials;
             meshGameObject.transform.SetPositionAndRotation(originalObject.transform.position, originalObject.transform.rotation);
             meshGameObject.transform.localScale = originalObject.transform.localScale;
             meshGameObject.tag = originalObject.tag;
@@ -86,6 +86,36 @@ namespace ToJam26.Gameplay.Slicing.External
             MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
             meshCollider.sharedMesh = mesh;
             meshCollider.convex = true;
+        }
+
+        private static void ConfigureMaterials(MeshRenderer meshRenderer, Material[] originalMaterials, Mesh mesh, Material insideMaterial)
+        {
+            if (meshRenderer == null)
+                return;
+
+            if (mesh == null || mesh.subMeshCount <= 1)
+            {
+                meshRenderer.materials = originalMaterials;
+                return;
+            }
+
+            int outsideCount = Mathf.Max(1, mesh.subMeshCount - 1);
+            Material fallbackMaterial =
+                originalMaterials != null && originalMaterials.Length > 0
+                    ? originalMaterials[Mathf.Min(originalMaterials.Length - 1, outsideCount - 1)]
+                    : null;
+
+            Material[] assignedMaterials = new Material[mesh.subMeshCount];
+            for (int i = 0; i < outsideCount; i++)
+            {
+                assignedMaterials[i] =
+                    originalMaterials != null && originalMaterials.Length > 0
+                        ? originalMaterials[Mathf.Min(i, originalMaterials.Length - 1)]
+                        : fallbackMaterial;
+            }
+
+            assignedMaterials[mesh.subMeshCount - 1] = insideMaterial != null ? insideMaterial : fallbackMaterial;
+            meshRenderer.materials = assignedMaterials;
         }
     }
 }

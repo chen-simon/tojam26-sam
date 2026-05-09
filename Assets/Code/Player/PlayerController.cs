@@ -25,7 +25,6 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private string attackClipName = "attack";
         [SerializeField, Range(0f, 1f)] private float attackHitboxStartNormalizedTime = 0.2f;
         [SerializeField, Range(0f, 1f)] private float attackHitboxEndNormalizedTime = 0.6f;
-        [SerializeField] private bool debugAttackWindow = false;
 
         private CharacterController characterController;
         private PlayerInput playerInput;
@@ -36,9 +35,6 @@ namespace ToJam26.Gameplay.Player
         private float smoothedSpeed;
         private bool attackHitboxEnabled;
         private bool wasInAttackState;
-        private int lastLoggedStateHash = int.MinValue;
-        private string lastLoggedClipName = string.Empty;
-        private bool lastLoggedInTransition;
 
         private static readonly int AnimSpeed = Animator.StringToHash("Speed");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
@@ -98,21 +94,6 @@ namespace ToJam26.Gameplay.Player
             {
                 DisableAttackHitbox();
                 animator.SetTrigger(AnimAttack);
-
-                if (debugAttackWindow)
-                {
-                    Debug.Log(
-                        $"[PlayerController] Attack trigger sent. Waiting for state '{attackStateName}'.",
-                        this);
-                }
-            }
-            else if (debugAttackWindow && animator != null)
-            {
-                AnimatorStateInfo currentState = animator.GetCurrentAnimatorStateInfo(0);
-                string clipName = GetCurrentClipDebugName();
-                Debug.Log(
-                    $"[PlayerController] Attack input ignored. Current state is '{GetCurrentStateDebugName(currentState, clipName)}'. Expected locomotion state '{locomotionStateName}'.",
-                    this);
             }
         }
 
@@ -135,28 +116,13 @@ namespace ToJam26.Gameplay.Player
 
             AnimatorStateInfo currentState = animator.GetCurrentAnimatorStateInfo(0);
             string clipName = GetCurrentClipDebugName();
-            LogAnimatorDebugState(currentState, clipName);
             bool isAttackState = MatchesAttackState(currentState, clipName);
             float normalizedTime = currentState.normalizedTime % 1f;
-
-            if (debugAttackWindow && isAttackState && !wasInAttackState)
-            {
-                Debug.Log(
-                    $"[PlayerController] Entered attack window source '{GetCurrentStateDebugName(currentState, clipName)}'. Window={attackHitboxStartNormalizedTime:F2}-{attackHitboxEndNormalizedTime:F2}.",
-                    this);
-            }
 
             if (!isAttackState)
             {
                 if (attackHitboxEnabled)
                     SetAttackHitboxesEnabled(false);
-
-                if (debugAttackWindow && wasInAttackState)
-                {
-                    Debug.Log(
-                        $"[PlayerController] Left attack state. Current state is '{GetCurrentStateDebugName(currentState, clipName)}'.",
-                        this);
-                }
 
                 wasInAttackState = false;
                 return;
@@ -167,40 +133,9 @@ namespace ToJam26.Gameplay.Player
                 normalizedTime <= attackHitboxEndNormalizedTime;
 
             if (shouldEnableHitbox != attackHitboxEnabled)
-            {
                 SetAttackHitboxesEnabled(shouldEnableHitbox);
 
-                if (debugAttackWindow)
-                {
-                    Debug.Log(
-                        $"[PlayerController] Attack state '{GetCurrentStateDebugName(currentState, clipName)}' time={normalizedTime:F2}, hitbox={(shouldEnableHitbox ? "ON" : "OFF")}.",
-                        this);
-                }
-            }
-
             wasInAttackState = true;
-        }
-
-        private void LogAnimatorDebugState(AnimatorStateInfo currentState, string clipName)
-        {
-            if (!debugAttackWindow)
-                return;
-
-            bool inTransition = animator.IsInTransition(0);
-            if (currentState.shortNameHash == lastLoggedStateHash &&
-                clipName == lastLoggedClipName &&
-                inTransition == lastLoggedInTransition)
-            {
-                return;
-            }
-
-            lastLoggedStateHash = currentState.shortNameHash;
-            lastLoggedClipName = clipName;
-            lastLoggedInTransition = inTransition;
-
-            Debug.Log(
-                $"[PlayerController] Animator state update: clip='{clipName}', shortHash={currentState.shortNameHash}, fullHash={currentState.fullPathHash}, normalizedTime={(currentState.normalizedTime % 1f):F2}, inTransition={inTransition}, matchesLocomotion={currentState.IsName(locomotionStateName)}, matchesAttackState={currentState.IsName(attackStateName)}, matchesAttackClip={MatchesClipName(clipName)}.",
-                this);
         }
 
         private string GetCurrentClipDebugName()
@@ -322,12 +257,5 @@ namespace ToJam26.Gameplay.Player
             }
         }
 
-        private string GetCurrentStateDebugName(AnimatorStateInfo stateInfo, string clipName)
-        {
-            return stateInfo.IsName(attackStateName) ? attackStateName :
-                stateInfo.IsName(locomotionStateName) ? locomotionStateName :
-                MatchesClipName(clipName) ? $"clip:{clipName}" :
-                $"hash:{stateInfo.shortNameHash}";
-        }
     }
 }

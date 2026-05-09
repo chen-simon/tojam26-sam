@@ -12,6 +12,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private bool reverseWireTriangles = false;
         [SerializeField] private bool shareVertices = false;
         [SerializeField] private bool smoothVertices = false;
+        [SerializeField] private Material insideSliceMaterial;
 
         [Header("Debris Settings")]
         [SerializeField] private float debrisMassRatio = 0.35f;
@@ -63,7 +64,7 @@ namespace ToJam26.Gameplay.Manager
             GameObject[] sliceResults;
             try
             {
-                sliceResults = Slicer.Slice(slicePlane, sliceTarget);
+                sliceResults = Slicer.Slice(slicePlane, sliceTarget, insideSliceMaterial);
             }
             catch (System.Exception ex)
             {
@@ -97,7 +98,7 @@ namespace ToJam26.Gameplay.Manager
             Destroy(keptSlice);
 
             targetPlayer.RecalculateScale();
-            ApplyPlayerKnockback(targetPlayer, cutNormal, cuttingForce);
+            ApplyPlayerKnockback(targetPlayer, cutPoint, cutNormal, cuttingForce);
             return true;
         }
 
@@ -149,9 +150,14 @@ namespace ToJam26.Gameplay.Manager
             detachedBody.AddForce(impulse, ForceMode.Impulse);
         }
 
-        private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 cutNormal, float cuttingForce)
+        private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 cutPoint, Vector3 cutNormal, float cuttingForce)
         {
-            Vector3 knockbackDirection = cutNormal;
+            Vector3 knockbackDirection = Vector3.ProjectOnPlane(targetPlayer.transform.position - cutPoint, Vector3.up);
+            if (knockbackDirection.sqrMagnitude < 0.0001f)
+                knockbackDirection = Vector3.ProjectOnPlane(-cutNormal, Vector3.up);
+            if (knockbackDirection.sqrMagnitude < 0.0001f)
+                knockbackDirection = -targetPlayer.transform.forward;
+
             float knockbackMagnitude = cuttingForce * targetPlayer.GetKnockbackMultiplier();
             targetPlayer.ApplyKnockback(knockbackDirection, knockbackMagnitude);
 

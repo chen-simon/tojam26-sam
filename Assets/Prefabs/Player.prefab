@@ -141,6 +141,7 @@ GameObject:
   - component: {fileID: 3946720844808481655}
   - component: {fileID: 6088080973931838255}
   - component: {fileID: 9128885248361950094}
+  - component: {fileID: 6722166342693155933}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -206,10 +207,16 @@ MonoBehaviour:
   scaleController: {fileID: 9128885248361950094}
   cameraTransform: {fileID: 0}
   animator: {fileID: 5735105544015766604}
-  moveSpeed: 1
-  moveAction: {fileID: 0}
+  attackHitboxes: []
   inputDeadzone: 0.1
   rotationSpeed: 15
+  speedDamping: 10
+  locomotionStateName: Movement
+  attackStateName: Attack
+  attackClipName: attack
+  attackHitboxStartNormalizedTime: 0.2
+  attackHitboxEndNormalizedTime: 0.6
+  debugAttackWindow: 0
 --- !u!114 &9128885248361950094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,8 +230,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   originalMass: 10
-  density: 1
-  minScale: 0.3
+  minScale: 0.05
   baseMovementSpeed: 10
   speedScaleCurve:
     serializedVersion: 2
@@ -278,6 +284,36 @@ MonoBehaviour:
   knockbackDuration: 0.2
   meshFilter: {fileID: 3378734687480754439}
   useVolumeCalculation: 1
+--- !u!114 &6722166342693155933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3771516242185290236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: 0}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: 
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1001 &2217688170834090313
 PrefabInstance:
   m_ObjectHideFlags: 0
