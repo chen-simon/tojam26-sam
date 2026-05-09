@@ -78,6 +78,7 @@ namespace ToJam26.Gameplay.Player
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
 
+            ConfigureAttackHitboxes();
             EnsureAnimationEventRelay();
             DisableAttackHitbox();
         }
@@ -147,6 +148,18 @@ namespace ToJam26.Gameplay.Player
                 relay = animator.gameObject.AddComponent<PlayerAnimationEventRelay>();
 
             relay.Initialize(this);
+        }
+
+        private void ConfigureAttackHitboxes()
+        {
+            if (attackHitboxes == null)
+                return;
+
+            foreach (KnifeBlade hitbox in attackHitboxes)
+            {
+                if (hitbox != null)
+                    hitbox.SetOwner(gameObject);
+            }
         }
 
         private string GetCurrentClipDebugName()

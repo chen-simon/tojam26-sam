@@ -26,6 +26,14 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnEnable()
         {
+            if (owner == null)
+            {
+                ToJam26.Gameplay.Player.PlayerController playerController =
+                    GetComponentInParent<ToJam26.Gameplay.Player.PlayerController>();
+                if (playerController != null)
+                    owner = playerController.gameObject;
+            }
+
             if (bladeCollider == null)
                 bladeCollider = GetComponent<Collider>();
 
