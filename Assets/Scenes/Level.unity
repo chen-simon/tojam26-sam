@@ -245,7 +245,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &517124788
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1149,7 +1149,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 348c205de046c49f7ac05fa26d12573e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseHitstopFrames: 2
+  baseHitstopFrames: 3
+  victimStunAnimSpeed: 2
 --- !u!1 &2099629941
 GameObject:
   m_ObjectHideFlags: 0

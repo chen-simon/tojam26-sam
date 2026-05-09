@@ -9,6 +9,7 @@ namespace ToJam26.Gameplay.Manager
         public static HitstopManager Instance { get; private set; }
 
         [SerializeField] private float baseHitstopFrames = 4f;
+        [SerializeField] private float victimStunAnimSpeed = 1f;
 
         private Coroutine activeHitstop;
         private Animator currentVictimAnimator;
@@ -51,7 +52,10 @@ namespace ToJam26.Gameplay.Manager
         {
             PlayerController[] allPlayers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             foreach (PlayerController pc in allPlayers)
-                pc.SetAnimatorSpeed(0f);
+            {
+                Animator anim = pc.GetAnimator();
+                pc.SetAnimatorSpeed(anim == victimAnimator ? victimStunAnimSpeed : 0f);
+            }
 
             if (victimAnimator != null)
                 victimAnimator.SetBool(AnimStun, true);
