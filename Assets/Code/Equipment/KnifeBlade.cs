@@ -10,6 +10,7 @@ namespace ToJam26.Gameplay.Equipment
         [SerializeField] private GameObject owner;
         [SerializeField] private float cuttingForce = 5f;
         [SerializeField] private Collider bladeCollider;
+        [SerializeField] private bool startEnabled = false;
 
         [Header("Slicing Settings")]
         [SerializeField] private float sliceDelay = 0.1f;
@@ -17,6 +18,7 @@ namespace ToJam26.Gameplay.Equipment
         [SerializeField] private bool debugMode = false;
 
         private readonly Dictionary<ISliceable, float> lastSliceTime = new();
+        private bool slicingEnabled;
 
         public float CuttingForce => cuttingForce;
         public GameObject Owner => owner;
@@ -29,10 +31,23 @@ namespace ToJam26.Gameplay.Equipment
 
             if (bladeCollider != null)
                 bladeCollider.isTrigger = true;
+
+            SetSlicingEnabled(startEnabled);
+        }
+
+        private void OnDisable()
+        {
+            if (bladeCollider != null)
+                bladeCollider.enabled = false;
+
+            slicingEnabled = false;
         }
 
         private void OnTriggerStay(Collider other)
         {
+            if (!slicingEnabled)
+                return;
+
             ISliceable sliceable = other.GetComponentInParent<ISliceable>();
             if (sliceable == null)
                 return;
@@ -108,6 +123,30 @@ namespace ToJam26.Gameplay.Equipment
         public void ClearSliceCooldowns()
         {
             lastSliceTime.Clear();
+        }
+
+        public void EnableSlicing()
+        {
+            SetSlicingEnabled(true);
+        }
+
+        public void DisableSlicing()
+        {
+            SetSlicingEnabled(false);
+        }
+
+        public void SetSlicingEnabled(bool enabled)
+        {
+            slicingEnabled = enabled;
+
+            if (bladeCollider != null)
+                bladeCollider.enabled = enabled;
+
+            if (!enabled)
+                ClearSliceCooldowns();
+
+            if (debugMode)
+                Debug.Log($"[KnifeBlade] Slicing {(enabled ? "enabled" : "disabled")}", this);
         }
 
         private void OnDrawGizmosSelected()

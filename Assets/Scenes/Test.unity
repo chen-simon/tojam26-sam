@@ -619,8 +619,9 @@ MonoBehaviour:
   reverseWireTriangles: 0
   shareVertices: 0
   smoothVertices: 0
+  insideSliceMaterial: {fileID: 2100000, guid: 8c1f33b15be184069b8823b7de1b41a6, type: 2}
   debrisMassRatio: 0.35
-  minimumDebrisMass: 0.05
+  minimumDebrisMass: 0.01
   debrisImpulseFactor: 0.25
   minimumDebrisImpulse: 0.5
   upwardDebrisImpulse: 0.25
@@ -1371,9 +1372,25 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6088080973931838255, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
+      propertyPath: attackStateName
+      value: attack
+      objectReference: {fileID: 0}
+    - target: {fileID: 6088080973931838255, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
       propertyPath: cameraTransform
       value: 
       objectReference: {fileID: 1890713272}
+    - target: {fileID: 6088080973931838255, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
+      propertyPath: debugAttackWindow
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6088080973931838255, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
+      propertyPath: attackHitboxes.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6088080973931838255, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
+      propertyPath: 'attackHitboxes.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8647820550969675400}
     - target: {fileID: 6460168430261530539, guid: c45e9d0b03d3dcf4a806f4b24ffcb9b5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1478,9 +1495,10 @@ MonoBehaviour:
   owner: {fileID: 8647820550969675399}
   cuttingForce: 5
   bladeCollider: {fileID: 8647820550969675398}
+  startEnabled: 0
   sliceDelay: 0.1
   sliceNormal: {x: 1, y: 0, z: 0}
-  debugMode: 1
+  debugMode: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

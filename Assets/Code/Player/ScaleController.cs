@@ -104,7 +104,11 @@ namespace ToJam26.Gameplay.Player
             if (knockbackMagnitude <= 0f)
                 knockbackMagnitude = baseKnockbackForce * KnockbackForceMultiplier;
 
-            Vector3 knockbackVelocity = knockbackDirection.normalized * knockbackMagnitude;
+            Vector3 planarDirection = Vector3.ProjectOnPlane(knockbackDirection, Vector3.up);
+            if (planarDirection.sqrMagnitude < 0.0001f)
+                planarDirection = -transform.forward;
+
+            Vector3 knockbackVelocity = planarDirection.normalized * knockbackMagnitude;
             currentKnockbackVelocity = knockbackVelocity;
             initialKnockbackVelocity = knockbackVelocity;
             isKnockedBack = true;

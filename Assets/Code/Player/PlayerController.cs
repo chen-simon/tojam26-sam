@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ToJam26.Gameplay.Equipment;
 
 namespace ToJam26.Gameplay.Player
 {
@@ -11,11 +12,19 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private ScaleController scaleController;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Animator animator;
+        [SerializeField] private KnifeBlade[] attackHitboxes;
 
         [Header("Input Settings")]
         [SerializeField] private float inputDeadzone = 0.1f;
         [SerializeField] private float rotationSpeed = 720f;
         [SerializeField] private float speedDamping = 10f;
+
+        [Header("Attack Window")]
+        [SerializeField] private string locomotionStateName = "Movement";
+        [SerializeField] private string attackStateName = "Attack";
+        [SerializeField] private string attackClipName = "attack";
+        [SerializeField, Range(0f, 1f)] private float attackHitboxStartNormalizedTime = 0.2f;
+        [SerializeField, Range(0f, 1f)] private float attackHitboxEndNormalizedTime = 0.6f;
 
         private CharacterController characterController;
         private PlayerInput playerInput;
@@ -24,6 +33,8 @@ namespace ToJam26.Gameplay.Player
         private Vector3 movementInput;
         private float verticalVelocity;
         private float smoothedSpeed;
+        private bool attackHitboxEnabled;
+        private bool wasInAttackState;
 
         private static readonly int AnimSpeed = Animator.StringToHash("Speed");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
@@ -41,13 +52,29 @@ namespace ToJam26.Gameplay.Player
 
             if (playerInput != null)
             {
-                moveAction = playerInput.actions["Move"];
-                attackAction = playerInput.actions["Attack"];
-                attackAction.performed += HandleAttack;
+                if (playerInput.actions != null)
+                {
+                    moveAction = playerInput.actions.FindAction("Move", throwIfNotFound: false);
+                    attackAction = playerInput.actions.FindAction("Attack", throwIfNotFound: false);
+
+                    if (attackAction != null)
+                        attackAction.performed += HandleAttack;
+                    else
+                        Debug.LogWarning("[PlayerController] PlayerInput is missing an 'Attack' action.", this);
+
+                    if (moveAction == null)
+                        Debug.LogWarning("[PlayerController] PlayerInput is missing a 'Move' action.", this);
+                }
+                else
+                {
+                    Debug.LogWarning("[PlayerController] PlayerInput has no assigned actions asset.", this);
+                }
             }
 
             if (scaleController != null)
                 scaleController.OnScaleChanged += OnScaleChanged;
+
+            DisableAttackHitbox();
         }
 
         private void OnDisable()
@@ -57,23 +84,78 @@ namespace ToJam26.Gameplay.Player
 
             if (attackAction != null)
                 attackAction.performed -= HandleAttack;
+
+            DisableAttackHitbox();
         }
 
         private void HandleAttack(InputAction.CallbackContext context)
         {
             if (AbleToPerformAttack())
+            {
+                DisableAttackHitbox();
                 animator.SetTrigger(AnimAttack);
+            }
         }
 
         private bool AbleToPerformAttack()
         {
-            return animator != null && animator.GetCurrentAnimatorStateInfo(0).IsName("Movement");
+            return animator != null && animator.GetCurrentAnimatorStateInfo(0).IsName(locomotionStateName);
         }
 
         private void Update()
         {
             ReadInput();
+            UpdateAttackHitboxWindow();
             ApplyMovement();
+        }
+
+        private void UpdateAttackHitboxWindow()
+        {
+            if (animator == null)
+                return;
+
+            AnimatorStateInfo currentState = animator.GetCurrentAnimatorStateInfo(0);
+            string clipName = GetCurrentClipDebugName();
+            bool isAttackState = MatchesAttackState(currentState, clipName);
+            float normalizedTime = currentState.normalizedTime % 1f;
+
+            if (!isAttackState)
+            {
+                if (attackHitboxEnabled)
+                    SetAttackHitboxesEnabled(false);
+
+                wasInAttackState = false;
+                return;
+            }
+
+            bool shouldEnableHitbox =
+                normalizedTime >= attackHitboxStartNormalizedTime &&
+                normalizedTime <= attackHitboxEndNormalizedTime;
+
+            if (shouldEnableHitbox != attackHitboxEnabled)
+                SetAttackHitboxesEnabled(shouldEnableHitbox);
+
+            wasInAttackState = true;
+        }
+
+        private string GetCurrentClipDebugName()
+        {
+            AnimatorClipInfo[] clipInfos = animator.GetCurrentAnimatorClipInfo(0);
+            if (clipInfos == null || clipInfos.Length == 0 || clipInfos[0].clip == null)
+                return "<none>";
+
+            return clipInfos[0].clip.name;
+        }
+
+        private bool MatchesAttackState(AnimatorStateInfo stateInfo, string clipName)
+        {
+            return stateInfo.IsName(attackStateName) || MatchesClipName(clipName);
+        }
+
+        private bool MatchesClipName(string clipName)
+        {
+            return !string.IsNullOrWhiteSpace(attackClipName) &&
+                   string.Equals(clipName, attackClipName, System.StringComparison.OrdinalIgnoreCase);
         }
 
         private void ReadInput()
@@ -150,5 +232,30 @@ namespace ToJam26.Gameplay.Player
         {
             return scaleController != null ? scaleController.ScaleRatio : 1f;
         }
+
+        public void EnableAttackHitbox()
+        {
+            SetAttackHitboxesEnabled(true);
+        }
+
+        public void DisableAttackHitbox()
+        {
+            SetAttackHitboxesEnabled(false);
+        }
+
+        private void SetAttackHitboxesEnabled(bool enabled)
+        {
+            attackHitboxEnabled = enabled;
+
+            if (attackHitboxes == null)
+                return;
+
+            foreach (KnifeBlade hitbox in attackHitboxes)
+            {
+                if (hitbox != null)
+                    hitbox.SetSlicingEnabled(enabled);
+            }
+        }
+
     }
 }
