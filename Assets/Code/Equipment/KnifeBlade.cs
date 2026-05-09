@@ -62,7 +62,8 @@ namespace ToJam26.Gameplay.Equipment
             string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
             Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
 
-            target.OnSliced(cutPoint, cutNormal, cuttingForce);
+            Vector3 attackDirection = owner != null ? owner.transform.forward : transform.forward;
+            target.OnSliced(cutPoint, cutNormal, cuttingForce, attackDirection);
             sliceConsumedThisWindow = true;
 
             if (enableDebugLogs)

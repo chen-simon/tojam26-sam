@@ -13,6 +13,7 @@ namespace ToJam26.Gameplay.Slicing
         /// <param name="cutPoint">The point in world space where the cut occurs</param>
         /// <param name="cutNormal">The normal vector of the cutting plane (direction of the knife)</param>
         /// <param name="cuttingForce">The force/magnitude of the cut (for damage or effect calculation)</param>
-        void OnSliced(Vector3 cutPoint, Vector3 cutNormal, float cuttingForce);
+        /// <param name="attackDirection">The world-space facing direction of the attacker</param>
+        void OnSliced(Vector3 cutPoint, Vector3 cutNormal, float cuttingForce, Vector3 attackDirection);
     }
 }

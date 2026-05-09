@@ -35,7 +35,7 @@ namespace ToJam26.Gameplay.Player
         public delegate void OnScaleChangedDelegate(float newScale, float newMass);
         public OnScaleChangedDelegate OnScaleChanged;
 
-        public delegate void OnSlicedDelegate(Vector3 cutPoint, Vector3 cutNormal, float damage);
+        public delegate void OnSlicedDelegate(Vector3 cutPoint, Vector3 cutNormal, float damage, Vector3 attackDirection);
         public OnSlicedDelegate OnPlayerSliced;
 
         public float CurrentMass => currentMass;
@@ -94,9 +94,9 @@ namespace ToJam26.Gameplay.Player
             }
         }
 
-        public void OnSliced(Vector3 cutPoint, Vector3 cutNormal, float cuttingForce)
+        public void OnSliced(Vector3 cutPoint, Vector3 cutNormal, float cuttingForce, Vector3 attackDirection)
         {
-            OnPlayerSliced?.Invoke(cutPoint, cutNormal, cuttingForce);
+            OnPlayerSliced?.Invoke(cutPoint, cutNormal, cuttingForce, attackDirection);
         }
 
         public void ApplyKnockback(Vector3 knockbackDirection, float knockbackMagnitude = 0f)

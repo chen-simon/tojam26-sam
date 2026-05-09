@@ -30,12 +30,17 @@ namespace ToJam26.Gameplay.Manager
             ScaleController[] playerScaleControllers = FindObjectsByType<ScaleController>(FindObjectsSortMode.None);
             foreach (ScaleController scaleController in playerScaleControllers)
             {
-                scaleController.OnPlayerSliced += (cutPoint, cutNormal, force) =>
-                    TrySlicePlayer(scaleController, cutPoint, cutNormal, force);
+                scaleController.OnPlayerSliced += (cutPoint, cutNormal, force, attackDirection) =>
+                    TrySlicePlayer(scaleController, cutPoint, cutNormal, force, attackDirection);
             }
         }
 
-        public bool TrySlicePlayer(ScaleController targetPlayer, Vector3 cutPoint, Vector3 cutNormal, float cuttingForce)
+        public bool TrySlicePlayer(
+            ScaleController targetPlayer,
+            Vector3 cutPoint,
+            Vector3 cutNormal,
+            float cuttingForce,
+            Vector3 attackDirection)
         {
             if (targetPlayer == null)
                 return false;
@@ -99,7 +104,7 @@ namespace ToJam26.Gameplay.Manager
             Destroy(keptSlice);
 
             targetPlayer.RecalculateScale();
-            ApplyPlayerKnockback(targetPlayer, cutPoint, cutNormal, cuttingForce);
+            ApplyPlayerKnockback(targetPlayer, attackDirection, cuttingForce);
             return true;
         }
 
@@ -152,11 +157,9 @@ namespace ToJam26.Gameplay.Manager
             detachedBody.AddForce(impulse, ForceMode.Impulse);
         }
 
-        private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 cutPoint, Vector3 cutNormal, float cuttingForce)
+        private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 attackDirection, float cuttingForce)
         {
-            Vector3 knockbackDirection = Vector3.ProjectOnPlane(targetPlayer.transform.position - cutPoint, Vector3.up);
-            if (knockbackDirection.sqrMagnitude < 0.0001f)
-                knockbackDirection = Vector3.ProjectOnPlane(-cutNormal, Vector3.up);
+            Vector3 knockbackDirection = Vector3.ProjectOnPlane(attackDirection, Vector3.up);
             if (knockbackDirection.sqrMagnitude < 0.0001f)
                 knockbackDirection = -targetPlayer.transform.forward;
 

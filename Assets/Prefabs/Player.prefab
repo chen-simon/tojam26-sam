@@ -67,7 +67,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owner: {fileID: 1299190042604594200}
-  cuttingForce: 5
+  cuttingForce: 10
   bladeCollider: {fileID: 4403011550355783299}
   startEnabled: 0
   sliceNormal: {x: 1, y: 0, z: 0}
@@ -276,27 +276,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   originalMass: 10
   minScale: 0.05
-  baseMovementSpeed: 15
+  baseMovementSpeed: 5
   speedScaleCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.012207905
-      value: 1.0081806
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      time: 0
+      value: 2
+      inSlope: -1
+      outSlope: -1
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1.0081482
-      value: 0.5012436
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      time: 1
+      value: 1
+      inSlope: -1
+      outSlope: -1
+      tangentMode: 34
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.33333334
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -307,26 +307,26 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 2
-      inSlope: 0
-      outSlope: -1.5
-      tangentMode: 0
+      value: 5
+      inSlope: -4
+      outSlope: -4
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 0.5
-      inSlope: -1.5
-      outSlope: 0
-      tangentMode: 0
+      value: 1
+      inSlope: -4
+      outSlope: -4
+      tangentMode: 34
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.33333334
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  knockbackDuration: 0.2
+  knockbackDuration: 0.5
   meshFilter: {fileID: 3378734687480754439}
   useVolumeCalculation: 1
 --- !u!114 &4871964117367462877
