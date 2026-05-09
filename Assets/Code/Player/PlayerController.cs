@@ -20,6 +20,7 @@ namespace ToJam26.Gameplay.Player
         private CharacterController characterController;
         private PlayerInput playerInput;
         private InputAction moveAction;
+        private InputAction attackAction;
         private Vector3 movementInput;
         private float verticalVelocity;
         private float smoothedSpeed;
@@ -41,7 +42,8 @@ namespace ToJam26.Gameplay.Player
             if (playerInput != null)
             {
                 moveAction = playerInput.actions["Move"];
-                playerInput.onActionTriggered += OnActionTriggered;
+                attackAction = playerInput.actions["Attack"];
+                attackAction.performed += HandleAttack;
             }
 
             if (scaleController != null)
@@ -53,14 +55,19 @@ namespace ToJam26.Gameplay.Player
             if (scaleController != null)
                 scaleController.OnScaleChanged -= OnScaleChanged;
 
-            if (playerInput != null)
-                playerInput.onActionTriggered -= OnActionTriggered;
+            if (attackAction != null)
+                attackAction.performed -= HandleAttack;
         }
 
-        private void OnActionTriggered(InputAction.CallbackContext context)
+        private void HandleAttack(InputAction.CallbackContext context)
         {
-            if (context.action.name == "Attack" && context.performed && animator != null)
+            if (AbleToPerformAttack())
                 animator.SetTrigger(AnimAttack);
+        }
+
+        private bool AbleToPerformAttack()
+        {
+            return animator != null && animator.GetCurrentAnimatorStateInfo(0).IsName("Movement");
         }
 
         private void Update()
