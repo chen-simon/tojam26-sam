@@ -70,9 +70,8 @@ MonoBehaviour:
   cuttingForce: 5
   bladeCollider: {fileID: 4403011550355783299}
   startEnabled: 0
-  ensureKinematicRigidbody: 1
   sliceNormal: {x: 1, y: 0, z: 0}
-  debugMode: 1
+  enableDebugLogs: 0
 --- !u!1 &3341198565668040035
 GameObject:
   m_ObjectHideFlags: 0

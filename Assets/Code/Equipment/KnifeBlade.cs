@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using ToJam26.Gameplay.Slicing;
 
 namespace ToJam26.Gameplay.Equipment
@@ -13,7 +14,8 @@ namespace ToJam26.Gameplay.Equipment
 
         [Header("Slicing Settings")]
         [SerializeField] private Vector3 sliceNormal = Vector3.up;
-        [SerializeField] private bool debugMode = false;
+        [FormerlySerializedAs("debugMode")]
+        [SerializeField] private bool enableDebugLogs = false;
 
         private bool slicingEnabled;
         private bool sliceConsumedThisWindow;
@@ -57,10 +59,13 @@ namespace ToJam26.Gameplay.Equipment
             if (target == null)
                 return false;
 
+            string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
+            Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
+
             target.OnSliced(cutPoint, cutNormal, cuttingForce);
             sliceConsumedThisWindow = true;
 
-            if (debugMode)
+            if (enableDebugLogs)
                 Debug.Log($"[KnifeBlade] Sliced {target} at {cutPoint} with normal {cutNormal}", this);
 
             return true;
@@ -117,7 +122,7 @@ namespace ToJam26.Gameplay.Equipment
             if (bladeCollider != null)
                 bladeCollider.enabled = enabled;
 
-            if (debugMode)
+            if (enableDebugLogs)
                 Debug.Log($"[KnifeBlade] Slicing {(enabled ? "enabled" : "disabled")}", this);
         }
 
@@ -143,13 +148,12 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnDrawGizmosSelected()
         {
-            if (!debugMode)
-                return;
+            Collider gizmoCollider = bladeCollider != null ? bladeCollider : GetComponent<Collider>();
 
-            if (bladeCollider != null)
+            if (gizmoCollider != null)
             {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireCube(bladeCollider.bounds.center, bladeCollider.bounds.size);
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireCube(gizmoCollider.bounds.center, gizmoCollider.bounds.size);
             }
 
             Gizmos.color = Color.green;

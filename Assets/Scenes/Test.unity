@@ -1512,7 +1512,7 @@ MonoBehaviour:
   bladeCollider: {fileID: 8647820550969675398}
   startEnabled: 0
   sliceNormal: {x: 1, y: 0, z: 0}
-  debugMode: 0
+  enableDebugLogs: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

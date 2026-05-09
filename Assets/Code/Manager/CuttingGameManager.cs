@@ -20,6 +20,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float debrisImpulseFactor = 0.25f;
         [SerializeField] private float minimumDebrisImpulse = 0.5f;
         [SerializeField] private float upwardDebrisImpulse = 0.25f;
+        [SerializeField] private float debrisLaunchSpeed = 1.5f;
 
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
@@ -145,6 +146,7 @@ namespace ToJam26.Gameplay.Manager
             detachedBody.mass = Mathf.Max(minimumDebrisMass, debrisMassRatio);
 
             Vector3 pushDirection = cutNormal.sqrMagnitude > 0f ? cutNormal.normalized : Vector3.up;
+            detachedBody.linearVelocity = pushDirection * debrisLaunchSpeed;
             Vector3 impulse = pushDirection * Mathf.Max(minimumDebrisImpulse, cuttingForce * debrisImpulseFactor)
                               + Vector3.up * upwardDebrisImpulse;
             detachedBody.AddForce(impulse, ForceMode.Impulse);
