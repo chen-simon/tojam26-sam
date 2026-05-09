@@ -40,6 +40,12 @@ public class PlayerCameraController : MonoBehaviour
         _orbital = GetComponent<CinemachineOrbitalFollow>();
     }
 
+    void Start()
+    {
+        _orbital.HorizontalAxis.Value = player.transform.eulerAngles.y;
+        _orbital.VerticalAxis.Value = defaultVertical;
+    }
+
     void OnEnable()
     {
         if (playerInput != null && playerInput.actions != null)
@@ -73,6 +79,13 @@ public class PlayerCameraController : MonoBehaviour
     private void HandleToggleLook(InputAction.CallbackContext context)
     {
         _isFreeLook = !_isFreeLook;
+    }
+
+    public void SetSpawnOrientation(Transform spawnPoint)
+    {
+        if (!_orbital) return;
+        _orbital.HorizontalAxis.Value = spawnPoint.eulerAngles.y;
+        _orbital.VerticalAxis.Value = defaultVertical;
     }
 
     void Update()
