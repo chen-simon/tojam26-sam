@@ -314,5 +314,13 @@ namespace ToJam26.Gameplay.Player
             }
         }
 
+        public void SetAnimatorSpeed(float speed)
+        {
+            if (animator != null)
+                animator.speed = speed;
+        }
+
+        public Animator GetAnimator() => animator;
+
     }
 }

@@ -32,6 +32,7 @@ namespace ToJam26.Gameplay.Player
         private Material[] originalMaterials;
         private Vector3 currentKnockbackVelocity = Vector3.zero;
         private bool isKnockedBack;
+        private bool isKnockbackPaused;
         private bool isEliminated;
         private bool isInitialized;
 
@@ -50,7 +51,7 @@ namespace ToJam26.Gameplay.Player
         public float ScaleRatio => currentScale;
         public float MovementSpeedMultiplier => speedScaleCurve.Evaluate(MassRatio);
         public float KnockbackForceMultiplier => knockbackScaleCurve.Evaluate(MassRatio);
-        public bool IsKnockedBack => isKnockedBack;
+        public bool IsKnockedBack => isKnockedBack && !isKnockbackPaused;
         public bool IsEliminated => isEliminated;
         public MeshFilter SliceMeshFilter => meshFilter;
         public GameObject SliceTargetObject => meshFilter != null ? meshFilter.gameObject : gameObject;
@@ -93,9 +94,12 @@ namespace ToJam26.Gameplay.Player
             OnScaleChanged?.Invoke(currentScale, currentMass);
         }
 
+        public void PauseKnockback() => isKnockbackPaused = true;
+        public void ResumeKnockback() => isKnockbackPaused = false;
+
         private void Update()
         {
-            if (!isKnockedBack)
+            if (!isKnockedBack || isKnockbackPaused)
                 return;
 
             float decelerationPerSecond = Mathf.Max(0f, knockbackDeceleration);
@@ -199,6 +203,7 @@ namespace ToJam26.Gameplay.Player
 
             isEliminated = true;
             isKnockedBack = false;
+            isKnockbackPaused = false;
             currentKnockbackVelocity = Vector3.zero;
             Debug.Log($"[ScaleController] Player {gameObject.name} has been eliminated!", this);
             OnEliminated?.Invoke(this);
@@ -216,6 +221,7 @@ namespace ToJam26.Gameplay.Player
             currentScale = 1f;
             currentMass = originalMass;
             isKnockedBack = false;
+            isKnockbackPaused = false;
             currentKnockbackVelocity = Vector3.zero;
             isEliminated = false;
 

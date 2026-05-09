@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 using ToJam26.Gameplay.Slicing;
+using ToJam26.Gameplay.Player;
+using ToJam26.Gameplay.Manager;
 
 namespace ToJam26.Gameplay.Equipment
 {
@@ -31,8 +33,7 @@ namespace ToJam26.Gameplay.Equipment
         {
             if (owner == null)
             {
-                ToJam26.Gameplay.Player.PlayerController playerController =
-                    GetComponentInParent<ToJam26.Gameplay.Player.PlayerController>();
+                PlayerController playerController = GetComponentInParent<PlayerController>();
                 if (playerController != null)
                     owner = playerController.gameObject;
             }
@@ -69,7 +70,7 @@ namespace ToJam26.Gameplay.Equipment
         {
             if (target == null)
                 return false;
-            
+
             Instantiate(hitParticlePrefab, cutPoint, Quaternion.identity);
             Instantiate(cutParticlePrefab, cutPoint, Quaternion.identity);
 
@@ -79,6 +80,14 @@ namespace ToJam26.Gameplay.Equipment
             Vector3 attackDirection = owner != null ? owner.transform.forward : transform.forward;
             target.OnSliced(cutPoint, cutNormal, cuttingForce, attackDirection);
             sliceConsumedThisWindow = true;
+
+            if (target is ScaleController victimScale)
+            {
+                PlayerController victimController = victimScale.GetComponent<PlayerController>();
+                Animator victimAnimator = victimController != null ? victimController.GetAnimator() : null;
+                if (HitstopManager.Instance != null)
+                    HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, victimScale.KnockbackForceMultiplier);
+            }
 
             if (enableDebugLogs)
                 Debug.Log($"[KnifeBlade] Sliced {target} at {cutPoint} with normal {cutNormal}", this);
