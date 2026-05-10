@@ -4819,7 +4819,7 @@ MonoBehaviour:
   - {fileID: 1898864441}
   - {fileID: 81566507}
   autoStartWhenEnoughPlayers: 1
-  roundDurationSeconds: 60
+  roundDurationSeconds: 80
   roundEndDelaySeconds: 2
   postMatchLobbyDelaySeconds: 2
   fallThresholdY: -10
@@ -6480,7 +6480,7 @@ Transform:
   m_GameObject: {fileID: 2142972983}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -15, z: 0}
+  m_LocalPosition: {x: 0, y: -12, z: 0}
   m_LocalScale: {x: 50, y: 1, z: 50}
   m_ConstrainProportionsScale: 0
   m_Children: []
