@@ -39,6 +39,7 @@ namespace ToJam26.Gameplay.Interface
         private DepthOfField lobbyBlurDepthOfField;
         private HudCountdownAnimationRelay countdownRelay;
         private bool countdownPending;
+        private bool isLobbyState = true;
 
         public bool CanPlayCountdown => countdownAnimator != null;
 
@@ -167,6 +168,7 @@ namespace ToJam26.Gameplay.Interface
         {
             if (gameManager == null)
             {
+                isLobbyState = true;
                 SetRoundVisible(false);
                 SetTimerVisible(false);
                 SetInstructionVisible(true);
@@ -179,6 +181,7 @@ namespace ToJam26.Gameplay.Interface
             int roundNumber = gameManager.CurrentRoundNumber;
             if (roundNumber > 0)
             {
+                isLobbyState = false;
                 SetRoundVisible(true);
                 SetTimerVisible(true);
                 SetInstructionVisible(false);
@@ -187,10 +190,12 @@ namespace ToJam26.Gameplay.Interface
             }
             else
             {
+                isLobbyState = true;
                 SetRoundVisible(false);
                 SetTimerVisible(false);
-                SetInstructionVisible(!gameManager.HasRequiredPlayers);
-                SetLobbyBlurActive(!gameManager.HasRequiredPlayers);
+                bool showLobbyInstruction = !gameManager.HasRequiredPlayers;
+                SetInstructionVisible(showLobbyInstruction);
+                SetLobbyBlurActive(showLobbyInstruction);
             }
 
             SetTimerLabel(gameManager.RemainingRoundTime);
@@ -199,6 +204,7 @@ namespace ToJam26.Gameplay.Interface
 
         private void HandleRoundPreparationStarted(int roundNumber, int maxRounds)
         {
+            isLobbyState = false;
             SetRoundVisible(true);
             SetTimerVisible(true);
             SetInstructionVisible(false);
@@ -210,6 +216,7 @@ namespace ToJam26.Gameplay.Interface
 
         private void HandleRoundStarted(int roundNumber, int maxRounds, float roundDuration)
         {
+            isLobbyState = false;
             SetRoundVisible(true);
             SetTimerVisible(true);
             SetInstructionVisible(false);
@@ -226,7 +233,7 @@ namespace ToJam26.Gameplay.Interface
 
         private void HandlePlayerRequirementChanged(bool hasRequiredPlayers)
         {
-            if (gameManager != null && gameManager.CurrentRoundNumber > 0)
+            if (!isLobbyState)
                 return;
 
             SetInstructionVisible(!hasRequiredPlayers);
@@ -235,6 +242,7 @@ namespace ToJam26.Gameplay.Interface
 
         private void HandleMatchEnded()
         {
+            isLobbyState = false;
             SetTimerVisible(true);
             SetInstructionVisible(false);
             SetLobbyBlurActive(false);
@@ -244,6 +252,7 @@ namespace ToJam26.Gameplay.Interface
 
         private void HandleLobbyEntered()
         {
+            isLobbyState = true;
             SetRoundVisible(false);
             SetTimerVisible(false);
             SetInstructionVisible(gameManager == null || !gameManager.HasRequiredPlayers);

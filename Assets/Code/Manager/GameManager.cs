@@ -10,6 +10,7 @@ namespace ToJam26.Gameplay.Manager
 {
     public class GameManager : MonoBehaviour
     {
+        public event Action<int, int> RoundIntroStarted;
         public event Action<int, int> RoundPreparationStarted;
         public event Action<int, int, float> RoundStarted;
         public event Action<float> RoundTimeChanged;
@@ -32,6 +33,7 @@ namespace ToJam26.Gameplay.Manager
 
         [Header("Round Settings")]
         [SerializeField] private float roundDurationSeconds = 80f;
+        [SerializeField] private float preRoundIntroSeconds = 1.25f;
         [SerializeField] private float roundEndDelaySeconds = 2f;
         [SerializeField] private float postMatchLobbyDelaySeconds = 2f;
         [SerializeField] private float fallThresholdY = -10f;
@@ -285,6 +287,11 @@ namespace ToJam26.Gameplay.Manager
 
             if (debugLogs)
                 Debug.Log($"[GameManager] Preparing round {currentRoundNumber}.", this);
+
+            RoundIntroStarted?.Invoke(currentRoundNumber, maxRounds);
+
+            if (preRoundIntroSeconds > 0f)
+                yield return new WaitForSeconds(preRoundIntroSeconds);
 
             waitingForRoundCountdown = hudController != null && hudController.CanPlayCountdown;
             RoundPreparationStarted?.Invoke(currentRoundNumber, maxRounds);
