@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 using ToJam26.Gameplay.Equipment;
 using ToJam26.Gameplay.Player;
 
@@ -13,8 +14,12 @@ namespace ToJam26.Gameplay.Manager
         [Header("Clips")]
         [SerializeField] private AudioClip sliceClip;
         [SerializeField] private AudioClip hitFleshClip;
-        [SerializeField] private AudioClip koClip;
+        [FormerlySerializedAs("koClip")]
+        [SerializeField] private AudioClip knifeCollideClip;
+        [FormerlySerializedAs("playerOverdriveActiveClip")]
+        [SerializeField] private AudioClip lowScaleHitClip;
         [SerializeField] private AudioClip waterSplashClip;
+        [SerializeField] private GameObject fallingWaterParticlePrefab;
         [SerializeField] private AudioClip ambienceClip;
         [SerializeField] private AudioClip crowdCheerClip;
         [SerializeField] private AudioClip bgmIntroClip;
@@ -195,9 +200,10 @@ namespace ToJam26.Gameplay.Manager
             PlayMusic(bgmIntroClip, loop: false);
         }
 
-        private void HandlePlayerTouchedWater(ScaleController fallenPlayer)
+        private void HandlePlayerTouchedWater(ScaleController fallenPlayer, Vector3 splashPosition)
         {
             PlayOneShot(waterSplashClip, sfxVolume);
+            SpawnWaterSplashParticle(splashPosition);
         }
 
         private void HandleRoundPreparationStarted(int roundNumber, int maxRounds)
@@ -214,12 +220,16 @@ namespace ToJam26.Gameplay.Manager
         private void HandleKnifeHitResolved(bool isKoHit)
         {
             PlayOneShot(hitFleshClip, sfxVolume);
+
+            if (isKoHit)
+                PlayOneShot(lowScaleHitClip, sfxVolume);
+
             PlayCrowdHitCheer();
         }
 
         private void HandleBladeClashed()
         {
-            PlayOneShot(koClip, sfxVolume);
+            PlayOneShot(knifeCollideClip, sfxVolume);
         }
 
         private void HandleRoundScored(ScaleController winner, int winnerScore)
@@ -346,6 +356,29 @@ namespace ToJam26.Gameplay.Manager
                 return;
 
             crowdHitSource.PlayOneShot(crowdCheerClip, hitCrowdCheerVolume);
+        }
+
+        private void SpawnWaterSplashParticle(Vector3 splashPosition)
+        {
+            if (fallingWaterParticlePrefab == null)
+                return;
+
+            GameObject particleInstance = Instantiate(
+                fallingWaterParticlePrefab,
+                splashPosition,
+                fallingWaterParticlePrefab.transform.rotation);
+
+            float destroyDelay = 5f;
+            ParticleSystem particleSystem = particleInstance.GetComponent<ParticleSystem>();
+            if (particleSystem != null)
+            {
+                ParticleSystem.MainModule main = particleSystem.main;
+                destroyDelay = main.duration + main.startLifetime.constantMax;
+                if (destroyDelay <= 0f)
+                    destroyDelay = 5f;
+            }
+
+            Destroy(particleInstance, destroyDelay);
         }
 
         private void PlayCountdownOverlay()

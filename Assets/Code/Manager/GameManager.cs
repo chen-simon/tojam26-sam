@@ -15,7 +15,7 @@ namespace ToJam26.Gameplay.Manager
         public event Action<int, int, float> RoundStarted;
         public event Action<float> RoundTimeChanged;
         public event Action<bool> PlayerRequirementChanged;
-        public event Action<ScaleController> PlayerTouchedWater;
+        public event Action<ScaleController, Vector3> PlayerTouchedWater;
         public event Action<ScaleController> PlayerFellOutOfArena;
         public event Action<ScaleController, int> RoundScored;
         public event Action MatchEnded;
@@ -345,7 +345,9 @@ namespace ToJam26.Gameplay.Manager
                     player.transform.position.y <= waterSurfaceY)
                 {
                     waterTouchedPlayers.Add(player);
-                    PlayerTouchedWater?.Invoke(player);
+                    Vector3 splashPosition = player.transform.position;
+                    splashPosition.y = waterSurfaceY;
+                    PlayerTouchedWater?.Invoke(player, splashPosition);
                 }
 
                 if (player.transform.position.y >= fallThresholdY)
