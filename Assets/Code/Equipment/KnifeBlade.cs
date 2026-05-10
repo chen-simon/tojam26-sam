@@ -105,8 +105,12 @@ namespace ToJam26.Gameplay.Equipment
                 return false;
 
             Transform effectCamera = ResolveEffectCameraTransform(target);
-            bool shouldPlayKoAudio = target is ScaleController preSliceVictimScale &&
+            ScaleController preSliceVictimScale = target as ScaleController;
+            bool shouldPlayKoAudio = preSliceVictimScale != null &&
                                      preSliceVictimScale.currentVolumeRatio < koVolumeThreshold;
+            float preSliceKnockbackMultiplier = preSliceVictimScale != null
+                ? preSliceVictimScale.KnockbackForceMultiplier
+                : 1f;
 
             SpawnEffectPrefab(cheeseParticlePrefab, cutPoint, effectCamera);
             SpawnEffectPrefab(hitParticlePrefab, cutPoint, effectCamera);
@@ -116,8 +120,8 @@ namespace ToJam26.Gameplay.Equipment
             string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
             Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
 
-            if (target is ScaleController preSliceVictimScaleForParticles)
-                TrySpawnKoParticle(preSliceVictimScaleForParticles, cutPoint, effectCamera);
+            if (preSliceVictimScale != null)
+                TrySpawnKoParticle(preSliceVictimScale, cutPoint, effectCamera);
 
             Vector3 attackDirection = owner != null ? owner.transform.forward : transform.forward;
             target.OnSliced(cutPoint, cutNormal, cuttingForce, attackDirection);
@@ -134,7 +138,7 @@ namespace ToJam26.Gameplay.Equipment
                 {
                     PlayerController ownerController = owner != null ? owner.GetComponent<PlayerController>() : null;
                     PlayerCameraController attackerCamera = ownerController != null ? ownerController.GetCameraController() : null;
-                    HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, victimScale.KnockbackForceMultiplier, attackerCamera);
+                    HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, preSliceKnockbackMultiplier, attackerCamera);
                 }
             }
 

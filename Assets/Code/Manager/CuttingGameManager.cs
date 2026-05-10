@@ -120,6 +120,8 @@ namespace ToJam26.Gameplay.Manager
             if (!TryGenerateSliceResults(sliceTarget, slicePlane, out GameObject[] sliceResults))
                 return false;
 
+            float preSliceKnockbackMultiplier = targetPlayer.GetKnockbackMultiplier();
+
             MeshFilter positiveMeshFilter = sliceResults[0].GetComponent<MeshFilter>();
             MeshFilter negativeMeshFilter = sliceResults[1].GetComponent<MeshFilter>();
             if (positiveMeshFilter == null || negativeMeshFilter == null ||
@@ -143,7 +145,7 @@ namespace ToJam26.Gameplay.Manager
             Destroy(keptSlice);
 
             targetPlayer.RecalculateScale();
-            ApplyPlayerKnockback(targetPlayer, attackDirection, cuttingForce);
+            ApplyPlayerKnockback(targetPlayer, attackDirection, cuttingForce, preSliceKnockbackMultiplier);
             return true;
         }
 
@@ -238,19 +240,25 @@ namespace ToJam26.Gameplay.Manager
             detachedPieces.Add(detachedPiece);
         }
 
-        private void ApplyPlayerKnockback(ScaleController targetPlayer, Vector3 attackDirection, float cuttingForce)
+        private void ApplyPlayerKnockback(
+            ScaleController targetPlayer,
+            Vector3 attackDirection,
+            float cuttingForce,
+            float knockbackMultiplier)
         {
             Vector3 knockbackDirection = Vector3.ProjectOnPlane(attackDirection, Vector3.up);
             if (knockbackDirection.sqrMagnitude < 0.0001f)
                 knockbackDirection = -targetPlayer.transform.forward;
 
-            float knockbackMagnitude = cuttingForce * targetPlayer.GetKnockbackMultiplier();
+            float knockbackMagnitude = cuttingForce * knockbackMultiplier;
             targetPlayer.ApplyKnockback(knockbackDirection, knockbackMagnitude);
 
             if (debugMode)
             {
                 Debug.Log($"[CuttingGameManager] Applied knockback: {knockbackDirection} * {knockbackMagnitude}", targetPlayer);
-                Debug.Log($"[CuttingGameManager] New scale: {targetPlayer.CurrentScale:F2}, New mass: {targetPlayer.CurrentMass:F2}", targetPlayer);
+                Debug.Log(
+                    $"[CuttingGameManager] Pre-slice knockback multiplier: {knockbackMultiplier:F2}, new scale: {targetPlayer.CurrentScale:F2}, new mass: {targetPlayer.CurrentMass:F2}",
+                    targetPlayer);
             }
         }
 
