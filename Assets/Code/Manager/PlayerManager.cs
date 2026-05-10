@@ -20,6 +20,7 @@ public class PlayerManager : MonoBehaviour
     private List<LayerMask> playerLayers;
 
     [SerializeField] private Transform playersParent;
+    [SerializeField] private List<Animator> playerHitUIAnimators;
 
     [Header("Camera Transitions")]
     [SerializeField] private Transform cameraRigsParent;
@@ -104,7 +105,11 @@ public class PlayerManager : MonoBehaviour
         }
 
         if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
+        {
             playerController.SetGameplayEnabled(true);
+            if (playerIndex < playerHitUIAnimators.Count && playerHitUIAnimators[playerIndex] != null)
+                playerController.SetHitUIAnimator(playerHitUIAnimators[playerIndex]);
+        }
 
         PlayerJoined?.Invoke(player);
         RefreshJoiningState();

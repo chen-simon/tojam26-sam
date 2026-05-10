@@ -98,6 +98,8 @@ namespace ToJam26.Gameplay.Equipment
             {
                 PlayerController victimController = victimScale.GetComponent<PlayerController>();
                 Animator victimAnimator = victimController != null ? victimController.GetAnimator() : null;
+                if (victimController != null)
+                    victimController.TriggerHitUI();
                 if (HitstopManager.Instance != null)
                     HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, victimScale.KnockbackForceMultiplier);
             }
