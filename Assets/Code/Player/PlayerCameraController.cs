@@ -28,22 +28,47 @@ public class PlayerCameraController : MonoBehaviour
     [Tooltip("Vertical angle when camera must arc overhead.")]
     [SerializeField] private float maxElevationAngle = 50f;
 
+    [Header("Transition Framing")]
+    [SerializeField] private float defaultReframeDuration = 0.75f;
+    [SerializeField] private float anchorPositionSmoothFactor = 0.45f;
+    [SerializeField] private float anchorRotationSharpness = 8f;
+
     private CinemachineOrbitalFollow _orbital;
+    private CinemachineCamera _virtualCamera;
     private InputAction _lookAction;
     private InputAction _toggleLookAction;
     private bool _isFreeLook = false;
+    private Transform _followAnchor;
+    private Vector3 _followAnchorVelocity;
+    private float _horizontalAxisVelocity;
+    private float _verticalAxisVelocity;
+    private float _reframeTimer;
+    private float _reframeDuration;
+    private float _reframeTargetHorizontal;
+    private float _reframeTargetVertical;
 
     public bool IsFreeLook => _isFreeLook;
 
     void Awake()
     {
         _orbital = GetComponent<CinemachineOrbitalFollow>();
+        _virtualCamera = GetComponent<CinemachineCamera>();
+        EnsureFollowAnchor();
     }
 
     void Start()
     {
-        _orbital.HorizontalAxis.Value = player.transform.eulerAngles.y;
-        _orbital.VerticalAxis.Value = defaultVertical;
+        EnsureFollowAnchor();
+
+        if (player == null || _orbital == null)
+            return;
+
+        if (_reframeTimer <= 0f)
+        {
+            _orbital.HorizontalAxis.Value = player.transform.eulerAngles.y;
+            _orbital.VerticalAxis.Value = defaultVertical;
+            SnapAnchorToPlayer();
+        }
     }
 
     void OnEnable()
@@ -83,13 +108,34 @@ public class PlayerCameraController : MonoBehaviour
 
     public void SetSpawnOrientation(Transform spawnPoint)
     {
-        if (!_orbital) return;
+        if (_orbital == null || spawnPoint == null)
+            return;
+
+        _reframeTimer = 0f;
         _orbital.HorizontalAxis.Value = spawnPoint.eulerAngles.y;
         _orbital.VerticalAxis.Value = defaultVertical;
+
+        if (_followAnchor != null)
+            _followAnchor.rotation = spawnPoint.rotation;
+    }
+
+    public void ReframeToSpawn(Transform spawnPoint, float duration = -1f)
+    {
+        if (_orbital == null || player == null || spawnPoint == null)
+            return;
+
+        EnsureFollowAnchor();
+
+        _reframeDuration = duration > 0f ? duration : defaultReframeDuration;
+        _reframeTimer = Mathf.Max(0.01f, _reframeDuration);
+        _reframeTargetHorizontal = spawnPoint.eulerAngles.y;
+        _reframeTargetVertical = defaultVertical;
     }
 
     void Update()
     {
+        UpdateFollowAnchor();
+
         Vector2 look = _lookAction != null ? _lookAction.ReadValue<Vector2>() : Vector2.zero;
 
         if (look.sqrMagnitude > 0.01f)
@@ -129,5 +175,94 @@ public class PlayerCameraController : MonoBehaviour
             _orbital.HorizontalAxis.Value = Mathf.LerpAngle(_orbital.HorizontalAxis.Value, behindH, hLerpT);
             _orbital.VerticalAxis.Value   = Mathf.Lerp(_orbital.VerticalAxis.Value, targetV, vLerpT);
         }
+    }
+
+    private void UpdateFollowAnchor()
+    {
+        if (player == null || _followAnchor == null)
+            return;
+
+        if (_reframeTimer <= 0f)
+        {
+            SnapAnchorToPlayer();
+            return;
+        }
+
+        _reframeTimer = Mathf.Max(0f, _reframeTimer - Time.deltaTime);
+        float smoothTime = Mathf.Max(0.01f, _reframeDuration * anchorPositionSmoothFactor);
+
+        _followAnchor.position = Vector3.SmoothDamp(
+            _followAnchor.position,
+            player.transform.position,
+            ref _followAnchorVelocity,
+            smoothTime);
+
+        float rotationLerp = 1f - Mathf.Exp(-anchorRotationSharpness * Time.deltaTime / Mathf.Max(0.01f, _reframeDuration));
+        _followAnchor.rotation = Quaternion.Slerp(_followAnchor.rotation, player.transform.rotation, rotationLerp);
+
+        if (_orbital != null)
+        {
+            _orbital.HorizontalAxis.Value = Mathf.SmoothDampAngle(
+                _orbital.HorizontalAxis.Value,
+                _reframeTargetHorizontal,
+                ref _horizontalAxisVelocity,
+                smoothTime);
+
+            _orbital.VerticalAxis.Value = Mathf.SmoothDamp(
+                _orbital.VerticalAxis.Value,
+                _reframeTargetVertical,
+                ref _verticalAxisVelocity,
+                smoothTime);
+        }
+
+        if (_reframeTimer > 0f)
+            return;
+
+        SetSpawnOrientationFromCurrentState();
+        SnapAnchorToPlayer();
+    }
+
+    private void EnsureFollowAnchor()
+    {
+        bool createdAnchor = false;
+        if (_followAnchor == null)
+        {
+            GameObject anchorObject = new($"{name} Follow Anchor");
+            _followAnchor = anchorObject.transform;
+            createdAnchor = true;
+        }
+
+        if (createdAnchor && player != null)
+            _followAnchor.SetPositionAndRotation(player.transform.position, player.transform.rotation);
+
+        if (_virtualCamera != null)
+            _virtualCamera.Follow = _followAnchor;
+    }
+
+    private void SnapAnchorToPlayer()
+    {
+        if (player == null || _followAnchor == null)
+            return;
+
+        _followAnchor.position = player.transform.position;
+        _followAnchor.rotation = player.transform.rotation;
+        _followAnchorVelocity = Vector3.zero;
+    }
+
+    private void SetSpawnOrientationFromCurrentState()
+    {
+        if (_orbital == null)
+            return;
+
+        _orbital.HorizontalAxis.Value = _reframeTargetHorizontal;
+        _orbital.VerticalAxis.Value = _reframeTargetVertical;
+        _horizontalAxisVelocity = 0f;
+        _verticalAxisVelocity = 0f;
+    }
+
+    private void OnDestroy()
+    {
+        if (_followAnchor != null)
+            Destroy(_followAnchor.gameObject);
     }
 }

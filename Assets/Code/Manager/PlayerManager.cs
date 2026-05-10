@@ -6,15 +6,26 @@ using ToJam26.Gameplay.Player;
 
 public class PlayerManager : MonoBehaviour
 {
-    private List<PlayerInput> players = new List<PlayerInput>();
+    private readonly List<PlayerInput> players = new List<PlayerInput>();
+    private readonly Dictionary<PlayerInput, PlayerCameraController> playerCameraControllers = new();
+    private readonly Dictionary<PlayerInput, CinemachineCamera> playerVirtualCameras = new();
+    private readonly Dictionary<PlayerInput, Camera> playerOutputCameras = new();
+    private readonly Dictionary<PlayerInput, CinemachineBrain> playerCameraBrains = new();
+
     [SerializeField]
     private List<Transform> startingPoints;
     [SerializeField]
     private List<Transform> lobbySpawns;
     [SerializeField]
     private List<LayerMask> playerLayers;
-    
+
     [SerializeField] private Transform playersParent;
+
+    [Header("Camera Transitions")]
+    [SerializeField] private Transform cameraRigsParent;
+    [SerializeField] private float joinCameraReframeDuration = 0.75f;
+    [SerializeField] private float roundStartCameraReframeDuration = 1f;
+    [SerializeField] private float lobbyCameraReframeDuration = 0.8f;
 
     private PlayerInputManager playerInputManager;
 
@@ -61,27 +72,36 @@ public class PlayerManager : MonoBehaviour
         player.transform.parent = playersParent;
         player.gameObject.name = "P" + players.Count.ToString();
         int playerIndex = players.Count - 1;
+
+        CacheAndDetachCameraRig(player);
+
         Transform spawnPoint = GetLobbySpawnPoint(playerIndex) ?? GetStartingPoint(playerIndex);
-        MovePlayerToPoint(player, spawnPoint, true);
+        MovePlayerToPoint(player, spawnPoint, true, joinCameraReframeDuration);
 
         //convert layer mask (bit) to an integer
         int layerToAdd = (int)Mathf.Log(playerLayers[playerIndex].value, 2);
         int channel = 1 << playerIndex;
 
         //set the layer
-        var vcam = player.GetComponentInChildren<CinemachineCamera>();
-        vcam.gameObject.layer = layerToAdd;
-        vcam.OutputChannel = (OutputChannels)channel;
+        CinemachineCamera vcam = GetCachedVirtualCamera(player);
+        if (vcam != null)
+        {
+            vcam.gameObject.layer = layerToAdd;
+            vcam.OutputChannel = (OutputChannels)channel;
+        }
 
-        player.GetComponentInChildren<CinemachineBrain>().ChannelMask = (OutputChannels)channel;
+        CinemachineBrain brain = GetCachedCameraBrain(player);
+        if (brain != null)
+            brain.ChannelMask = (OutputChannels)channel;
 
-        if (vcam.TryGetComponent<PlayerCameraController>(out var camController) && spawnPoint != null)
-            camController.SetSpawnOrientation(spawnPoint);
+        Camera cam = GetCachedOutputCamera(player);
+        if (cam != null)
+        {
+            foreach (LayerMask mask in playerLayers)
+                cam.cullingMask &= ~mask.value;
 
-        var cam = player.GetComponentInChildren<Camera>();
-        foreach (var mask in playerLayers)
-            cam.cullingMask &= ~mask.value;
-        cam.cullingMask |= 1 << layerToAdd;
+            cam.cullingMask |= 1 << layerToAdd;
+        }
 
         if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
             playerController.SetGameplayEnabled(true);
@@ -119,7 +139,7 @@ public class PlayerManager : MonoBehaviour
 
         if (!player.gameObject.activeSelf)
             player.gameObject.SetActive(true);
-        MovePlayerToPoint(player, GetStartingPoint(playerIndex), true);
+        MovePlayerToPoint(player, GetStartingPoint(playerIndex), true, roundStartCameraReframeDuration);
 
         PlayerController playerController = player.GetComponent<PlayerController>();
         if (playerController != null)
@@ -135,7 +155,7 @@ public class PlayerManager : MonoBehaviour
                 continue;
 
             Transform spawn = GetLobbySpawnPoint(i) ?? GetStartingPoint(i);
-            MovePlayerToPoint(player, spawn, true);
+            MovePlayerToPoint(player, spawn, true, lobbyCameraReframeDuration);
 
             if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
                 playerController.SetGameplayEnabled(true);
@@ -171,7 +191,7 @@ public class PlayerManager : MonoBehaviour
         return lobbySpawns[playerIndex];
     }
 
-    private void MovePlayerToPoint(PlayerInput player, Transform spawnPoint, bool resetScale)
+    private void MovePlayerToPoint(PlayerInput player, Transform spawnPoint, bool resetScale, float cameraReframeDuration)
     {
         if (player == null || spawnPoint == null)
             return;
@@ -191,12 +211,72 @@ public class PlayerManager : MonoBehaviour
         if (characterController != null)
             characterController.enabled = true;
 
-        var vcam = player.GetComponentInChildren<CinemachineCamera>();
-        if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
-            camController.SetSpawnOrientation(spawnPoint);
+        PlayerCameraController camController = GetCachedCameraController(player);
+        if (camController != null)
+            camController.ReframeToSpawn(spawnPoint, cameraReframeDuration);
 
         if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
             playerController.DisableAttackHitbox();
+    }
+
+    private void CacheAndDetachCameraRig(PlayerInput player)
+    {
+        if (player == null)
+            return;
+
+        if (!playerCameraControllers.TryGetValue(player, out PlayerCameraController camController) || camController == null)
+        {
+            CinemachineCamera virtualCamera = player.GetComponentInChildren<CinemachineCamera>(true);
+            Camera outputCamera = player.GetComponentInChildren<Camera>(true);
+            CinemachineBrain brain = player.GetComponentInChildren<CinemachineBrain>(true);
+            camController = player.GetComponentInChildren<PlayerCameraController>(true);
+
+            if (camController != null)
+                playerCameraControllers[player] = camController;
+
+            if (virtualCamera != null)
+                playerVirtualCameras[player] = virtualCamera;
+
+            if (outputCamera != null)
+                playerOutputCameras[player] = outputCamera;
+
+            if (brain != null)
+                playerCameraBrains[player] = brain;
+        }
+
+        Transform rigParent = cameraRigsParent != null ? cameraRigsParent : transform;
+
+        CinemachineCamera cachedVirtualCamera = GetCachedVirtualCamera(player);
+        if (cachedVirtualCamera != null && cachedVirtualCamera.transform.parent != rigParent)
+            cachedVirtualCamera.transform.SetParent(rigParent, true);
+
+        Camera cachedOutputCamera = GetCachedOutputCamera(player);
+        if (cachedOutputCamera != null && cachedOutputCamera.transform.parent != rigParent)
+            cachedOutputCamera.transform.SetParent(rigParent, true);
+    }
+
+    private PlayerCameraController GetCachedCameraController(PlayerInput player)
+    {
+        playerCameraControllers.TryGetValue(player, out PlayerCameraController controller);
+        return controller;
+    }
+
+    private CinemachineCamera GetCachedVirtualCamera(PlayerInput player)
+    {
+        playerVirtualCameras.TryGetValue(player, out CinemachineCamera virtualCamera);
+        return virtualCamera;
+    }
+
+    private Camera GetCachedOutputCamera(PlayerInput player)
+    {
+        playerOutputCameras.TryGetValue(player, out Camera outputCamera);
+        return outputCamera;
+    }
+
+    private CinemachineBrain GetCachedCameraBrain(PlayerInput player)
+    {
+        playerCameraBrains.TryGetValue(player, out CinemachineBrain brain);
+        return brain;
     }
 
     private void RefreshJoiningState()
