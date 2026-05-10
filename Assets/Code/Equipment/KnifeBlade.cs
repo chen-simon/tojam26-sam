@@ -34,6 +34,7 @@ namespace ToJam26.Gameplay.Equipment
         public float CuttingForce => cuttingForce;
         public GameObject Owner => owner;
         public Collider BladeCollider => bladeCollider;
+        public float KoVolumeThreshold => koVolumeThreshold;
 
         private void OnEnable()
         {
