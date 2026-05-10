@@ -10,6 +10,8 @@ namespace ToJam26.Gameplay.Player
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
     {
+        public static event System.Action AttackStarted;
+
         [Header("Controllers")]
         [SerializeField] private ScaleController scaleController;
         [SerializeField] private Transform cameraTransform;
@@ -114,6 +116,7 @@ namespace ToJam26.Gameplay.Player
             if (gameplayEnabled && AbleToPerformAttack())
             {
                 DisableAttackHitbox();
+                AttackStarted?.Invoke();
                 animator.SetTrigger(AnimAttack);
             }
         }

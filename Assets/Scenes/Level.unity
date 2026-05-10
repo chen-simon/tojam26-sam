@@ -4750,6 +4750,7 @@ GameObject:
   - component: {fileID: 1550303674}
   - component: {fileID: 1550303675}
   - component: {fileID: 1550303676}
+  - component: {fileID: 1550303677}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -4824,6 +4825,33 @@ MonoBehaviour:
   postMatchLobbyDelaySeconds: 2
   fallThresholdY: -10
   debugLogs: 1
+--- !u!114 &1550303677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550303673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ea6f10f314a4570b73426f6d0bb3c1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 1550303676}
+  sliceClip: {fileID: 8300000, guid: 882ed135b77bd1c41976079166357a2f, type: 3}
+  hitFleshClip: {fileID: 8300000, guid: dd2498e64895e90459971eaee72ee7bb, type: 3}
+  koClip: {fileID: 8300000, guid: aedb7853c2f59c84da4d0db1342f66ba, type: 3}
+  ambienceClip: {fileID: 8300000, guid: 64bb9c5a75242f34b8d1b2b1fc70fab4, type: 3}
+  crowdCheerClip: {fileID: 8300000, guid: 620e37e39dbdb5c449e8f30c5af7e1fb, type: 3}
+  sfxVolume: 1.3
+  ambienceVolume: 0.1
+  ambienceDuckedVolume: 0.02
+  crowdCheerVolume: 0.35
+  crowdFadeInSeconds: 0.2
+  crowdFadeOutSeconds: 0.45
+  ambienceFadeSeconds: 0.35
+  playAmbienceOnEnable: 1
+  debugLogs: 0
 --- !u!1 &1561410490
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,6 +9,8 @@ namespace ToJam26.Gameplay.Equipment
 {
     public class KnifeBlade : MonoBehaviour, IKnife
     {
+        public static event System.Action<bool> HitResolved;
+
         [Header("Knife Settings")]
         [SerializeField] private GameObject owner;
         [SerializeField] private float cuttingForce = 5f;
@@ -79,6 +81,8 @@ namespace ToJam26.Gameplay.Equipment
                 return false;
 
             Transform effectCamera = ResolveEffectCameraTransform(target);
+            bool shouldPlayKoAudio = target is ScaleController preSliceVictimScale &&
+                                     preSliceVictimScale.currentVolumeRatio < koVolumeThreshold;
 
             SpawnEffectPrefab(cheeseParticlePrefab, cutPoint, effectCamera);
             SpawnEffectPrefab(hitParticlePrefab, cutPoint, effectCamera);
@@ -88,12 +92,13 @@ namespace ToJam26.Gameplay.Equipment
             string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
             Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
 
-            if (target is ScaleController preSliceVictimScale)
-                TrySpawnKoParticle(preSliceVictimScale, cutPoint, effectCamera);
+            if (target is ScaleController preSliceVictimScaleForParticles)
+                TrySpawnKoParticle(preSliceVictimScaleForParticles, cutPoint, effectCamera);
 
             Vector3 attackDirection = owner != null ? owner.transform.forward : transform.forward;
             target.OnSliced(cutPoint, cutNormal, cuttingForce, attackDirection);
             sliceConsumedThisWindow = true;
+            HitResolved?.Invoke(shouldPlayKoAudio);
 
             if (target is ScaleController victimScale)
             {

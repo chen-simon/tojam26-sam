@@ -14,6 +14,7 @@ namespace ToJam26.Gameplay.Manager
         public event Action<int, int, float> RoundStarted;
         public event Action<float> RoundTimeChanged;
         public event Action<bool> PlayerRequirementChanged;
+        public event Action<ScaleController, int> RoundScored;
         public event Action MatchEnded;
         public event Action LobbyEntered;
 
@@ -373,7 +374,10 @@ namespace ToJam26.Gameplay.Manager
                 playerManager.SetPlayersGameplayEnabled(false);
 
             if (winner != null && roundWins.ContainsKey(winner))
+            {
                 roundWins[winner]++;
+                RoundScored?.Invoke(winner, roundWins[winner]);
+            }
 
             if (debugLogs)
             {
