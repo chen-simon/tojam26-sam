@@ -27,8 +27,16 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private AudioClip battleBgmClip;
 
         [Header("Mix")]
-        [SerializeField] private float sfxVolume = 1f;
-        [SerializeField] private float bgmVolume = 0.7f;
+        [SerializeField] private float sliceVolume = 1f;
+        [SerializeField] private float hitFleshVolume = 1f;
+        [FormerlySerializedAs("sfxVolume")]
+        [SerializeField] private float knifeCollideVolume = 1f;
+        [SerializeField] private float lowScaleHitVolume = 1f;
+        [SerializeField] private float waterSplashVolume = 1f;
+        [SerializeField] private float bgmIntroVolume = 0.7f;
+        [SerializeField] private float countdownVolume = 0.7f;
+        [FormerlySerializedAs("bgmVolume")]
+        [SerializeField] private float battleBgmVolume = 0.7f;
         [SerializeField] private float ambienceVolume = 0.35f;
         [SerializeField] private float ambienceDuckedVolume = 0.12f;
         [SerializeField] private float crowdCheerVolume = 0.9f;
@@ -151,8 +159,8 @@ namespace ToJam26.Gameplay.Manager
             ambienceSource.volume = ambienceVolume;
             crowdSource.volume = 0f;
             sfxSource.volume = 1f;
-            musicSource.volume = bgmVolume;
-            countdownSource.volume = bgmVolume;
+            musicSource.volume = battleBgmVolume;
+            countdownSource.volume = countdownVolume;
             crowdHitSource.volume = 1f;
         }
 
@@ -192,17 +200,17 @@ namespace ToJam26.Gameplay.Manager
 
         private void HandleAttackStarted()
         {
-            PlayOneShot(sliceClip, sfxVolume);
+            PlayOneShot(sliceClip, sliceVolume);
         }
 
         private void HandleRoundIntroStarted(int roundNumber, int maxRounds)
         {
-            PlayMusic(bgmIntroClip, loop: false);
+            PlayMusic(bgmIntroClip, loop: false, bgmIntroVolume);
         }
 
         private void HandlePlayerTouchedWater(ScaleController fallenPlayer, Vector3 splashPosition)
         {
-            PlayOneShot(waterSplashClip, sfxVolume);
+            PlayOneShot(waterSplashClip, waterSplashVolume);
             SpawnWaterSplashParticle(splashPosition);
         }
 
@@ -214,22 +222,22 @@ namespace ToJam26.Gameplay.Manager
         private void HandleRoundStarted(int roundNumber, int maxRounds, float roundDuration)
         {
             StopCountdownOverlay();
-            PlayMusic(battleBgmClip, loop: true);
+            PlayMusic(battleBgmClip, loop: true, battleBgmVolume);
         }
 
         private void HandleKnifeHitResolved(bool isKoHit)
         {
-            PlayOneShot(hitFleshClip, sfxVolume);
+            PlayOneShot(hitFleshClip, hitFleshVolume);
 
             if (isKoHit)
-                PlayOneShot(lowScaleHitClip, sfxVolume);
+                PlayOneShot(lowScaleHitClip, lowScaleHitVolume);
 
             PlayCrowdHitCheer();
         }
 
         private void HandleBladeClashed()
         {
-            PlayOneShot(knifeCollideClip, sfxVolume);
+            PlayOneShot(knifeCollideClip, knifeCollideVolume);
         }
 
         private void HandleRoundScored(ScaleController winner, int winnerScore)
@@ -408,7 +416,7 @@ namespace ToJam26.Gameplay.Manager
             countdownSource.Stop();
             countdownSource.clip = countdownClip;
             countdownSource.loop = false;
-            countdownSource.volume = bgmVolume;
+            countdownSource.volume = countdownVolume;
             countdownSource.Play();
         }
 
@@ -421,20 +429,20 @@ namespace ToJam26.Gameplay.Manager
 
             countdownSource.Stop();
             countdownSource.clip = null;
-            countdownSource.volume = bgmVolume;
+            countdownSource.volume = countdownVolume;
         }
 
-        private void PlayMusic(AudioClip clip, bool loop)
+        private void PlayMusic(AudioClip clip, bool loop, float targetVolume)
         {
             EnsureAudioSources();
 
             if (musicRoutine != null)
                 StopCoroutine(musicRoutine);
 
-            musicRoutine = StartCoroutine(PlayMusicRoutine(clip, loop));
+            musicRoutine = StartCoroutine(PlayMusicRoutine(clip, loop, targetVolume));
         }
 
-        private IEnumerator PlayMusicRoutine(AudioClip clip, bool loop)
+        private IEnumerator PlayMusicRoutine(AudioClip clip, bool loop, float targetVolume)
         {
             if (musicSource == null)
                 yield break;
@@ -457,7 +465,7 @@ namespace ToJam26.Gameplay.Manager
             {
                 musicSource.Stop();
                 musicSource.clip = null;
-                musicSource.volume = bgmVolume;
+                musicSource.volume = targetVolume;
                 musicRoutine = null;
                 yield break;
             }
@@ -472,11 +480,11 @@ namespace ToJam26.Gameplay.Manager
             while (fadeInElapsed < fadeSeconds)
             {
                 fadeInElapsed += Time.unscaledDeltaTime;
-                musicSource.volume = Mathf.Lerp(0f, bgmVolume, Mathf.Clamp01(fadeInElapsed / fadeSeconds));
+                musicSource.volume = Mathf.Lerp(0f, targetVolume, Mathf.Clamp01(fadeInElapsed / fadeSeconds));
                 yield return null;
             }
 
-            musicSource.volume = bgmVolume;
+            musicSource.volume = targetVolume;
             musicRoutine = null;
         }
 
@@ -495,7 +503,7 @@ namespace ToJam26.Gameplay.Manager
 
             musicSource.Stop();
             musicSource.clip = null;
-            musicSource.volume = bgmVolume;
+            musicSource.volume = battleBgmVolume;
         }
     }
 }
