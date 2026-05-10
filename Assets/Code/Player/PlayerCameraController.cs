@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
+using UnityEngine.Serialization;
 
 // Requires CinemachineOrbitalFollow on the same virtual camera GameObject.
 // Remove CinemachineInputAxisController if present — axes are driven here.
@@ -13,8 +14,12 @@ public class PlayerCameraController : MonoBehaviour
     [SerializeField] private PlayerInput playerInput;
 
     [Header("Manual Look")]
-    [SerializeField] private float lookSensitivityH = 180f;
-    [SerializeField] private float lookSensitivityV = 90f;
+    [FormerlySerializedAs("lookSensitivityH")]
+    [SerializeField] private float gamepadLookSensitivityH = 180f;
+    [FormerlySerializedAs("lookSensitivityV")]
+    [SerializeField] private float gamepadLookSensitivityV = 90f;
+    [SerializeField] private float mouseLookSensitivityH = 60f;
+    [SerializeField] private float mouseLookSensitivityV = 30f;
 
     [Header("Camera Auto-Return")]
     [Tooltip("Maximum horizontal return rate at full speed.")]
@@ -140,6 +145,9 @@ public class PlayerCameraController : MonoBehaviour
 
         if (look.sqrMagnitude > 0.01f)
         {
+            float lookSensitivityH = GetHorizontalLookSensitivity();
+            float lookSensitivityV = GetVerticalLookSensitivity();
+
             _orbital.HorizontalAxis.Value += look.x * lookSensitivityH * Time.deltaTime;
             _orbital.VerticalAxis.Value = Mathf.Clamp(
                 _orbital.VerticalAxis.Value - look.y * lookSensitivityV * Time.deltaTime,
@@ -258,6 +266,25 @@ public class PlayerCameraController : MonoBehaviour
         _orbital.VerticalAxis.Value = _reframeTargetVertical;
         _horizontalAxisVelocity = 0f;
         _verticalAxisVelocity = 0f;
+    }
+
+    private float GetHorizontalLookSensitivity()
+    {
+        return IsUsingMouseLook() ? mouseLookSensitivityH : gamepadLookSensitivityH;
+    }
+
+    private float GetVerticalLookSensitivity()
+    {
+        return IsUsingMouseLook() ? mouseLookSensitivityV : gamepadLookSensitivityV;
+    }
+
+    private bool IsUsingMouseLook()
+    {
+        if (playerInput != null && !string.IsNullOrEmpty(playerInput.currentControlScheme))
+            return playerInput.currentControlScheme == "Keyboard&Mouse";
+
+        InputControl activeControl = _lookAction != null ? _lookAction.activeControl : null;
+        return activeControl != null && activeControl.device is Mouse;
     }
 
     private void OnDestroy()

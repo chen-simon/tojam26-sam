@@ -80,6 +80,9 @@ namespace ToJam26.Gameplay.Manager
             PlayerController.AttackStarted -= HandleAttackStarted;
             PlayerController.AttackStarted += HandleAttackStarted;
 
+            KnifeBlade.BladeClashed -= HandleBladeClashed;
+            KnifeBlade.BladeClashed += HandleBladeClashed;
+
             KnifeBlade.HitResolved -= HandleKnifeHitResolved;
             KnifeBlade.HitResolved += HandleKnifeHitResolved;
 
@@ -102,6 +105,7 @@ namespace ToJam26.Gameplay.Manager
         private void Unsubscribe()
         {
             PlayerController.AttackStarted -= HandleAttackStarted;
+            KnifeBlade.BladeClashed -= HandleBladeClashed;
             KnifeBlade.HitResolved -= HandleKnifeHitResolved;
 
             if (gameManager == null)
@@ -202,9 +206,11 @@ namespace ToJam26.Gameplay.Manager
         {
             PlayOneShot(hitFleshClip, sfxVolume);
             PlayCrowdHitCheer();
+        }
 
-            if (isKoHit)
-                PlayOneShot(koClip, sfxVolume);
+        private void HandleBladeClashed()
+        {
+            PlayOneShot(koClip, sfxVolume);
         }
 
         private void HandleRoundScored(ScaleController winner, int winnerScore)

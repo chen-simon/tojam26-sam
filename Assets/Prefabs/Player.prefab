@@ -552,8 +552,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 3946720844808481655}
   playerInput: {fileID: 4871964117367462877}
-  lookSensitivityH: 270
-  lookSensitivityV: 90
+  gamepadLookSensitivityH: 270
+  gamepadLookSensitivityV: 90
+  mouseLookSensitivityH: 3
+  mouseLookSensitivityV: 1
   horizontalReturnSpeed: 0.5
   verticalReturnSpeed: 1
   referenceSpeed: 1

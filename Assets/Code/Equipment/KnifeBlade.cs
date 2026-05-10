@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
 using ToJam26.Gameplay.Slicing;
 using ToJam26.Gameplay.Player;
 using ToJam26.Gameplay.Manager;
@@ -10,6 +11,7 @@ namespace ToJam26.Gameplay.Equipment
     public class KnifeBlade : MonoBehaviour, IKnife
     {
         public static event System.Action<bool> HitResolved;
+        public static event System.Action BladeClashed;
 
         [Header("Knife Settings")]
         [SerializeField] private GameObject owner;
@@ -32,6 +34,7 @@ namespace ToJam26.Gameplay.Equipment
 
         private bool slicingEnabled;
         private bool sliceConsumedThisWindow;
+        private static readonly HashSet<ulong> ActiveBladeClashes = new();
 
         public float CuttingForce => cuttingForce;
         public GameObject Owner => owner;
@@ -58,6 +61,8 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnDisable()
         {
+            CleanupAllBladeClashesForThisBlade();
+
             if (bladeCollider != null)
                 bladeCollider.enabled = false;
 
@@ -67,12 +72,18 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnTriggerEnter(Collider other)
         {
+            TryNotifyBladeClash(other);
             TrySliceFromContact(other);
         }
 
         private void OnTriggerStay(Collider other)
         {
             TrySliceFromContact(other);
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            CleanupBladeClash(other);
         }
 
         public bool TrySlice(ISliceable target, Vector3 cutPoint, Vector3 cutNormal)
@@ -245,6 +256,9 @@ namespace ToJam26.Gameplay.Equipment
             if (!slicingEnabled || sliceConsumedThisWindow)
                 return;
 
+            if (IsBladeClashTarget(other))
+                return;
+
             ISliceable sliceable = other.GetComponentInParent<ISliceable>();
             if (sliceable == null)
                 return;
@@ -258,6 +272,83 @@ namespace ToJam26.Gameplay.Equipment
             Vector3 cutPoint = CalculateCutPoint(other);
             Vector3 cutNormal = CalculateCutNormal();
             TrySlice(sliceable, cutPoint, cutNormal);
+        }
+
+        private void TryNotifyBladeClash(Collider other)
+        {
+            if (!slicingEnabled || !IsBladeClashTarget(other))
+                return;
+
+            KnifeBlade otherBlade = other.GetComponentInParent<KnifeBlade>();
+            if (otherBlade == null)
+                return;
+
+            ulong clashKey = GetBladeClashKey(otherBlade);
+            if (!ActiveBladeClashes.Add(clashKey))
+                return;
+
+            BladeClashed?.Invoke();
+        }
+
+        private void CleanupBladeClash(Collider other)
+        {
+            if (other == null)
+                return;
+
+            KnifeBlade otherBlade = other.GetComponentInParent<KnifeBlade>();
+            if (otherBlade == null)
+                return;
+
+            ActiveBladeClashes.Remove(GetBladeClashKey(otherBlade));
+        }
+
+        private void CleanupAllBladeClashesForThisBlade()
+        {
+            int thisId = GetInstanceID();
+            List<ulong> keysToRemove = null;
+            foreach (ulong clashKey in ActiveBladeClashes)
+            {
+                int lowId = (int)(clashKey >> 32);
+                int highId = (int)(clashKey & 0xffffffff);
+                if (lowId != thisId && highId != thisId)
+                    continue;
+
+                keysToRemove ??= new List<ulong>();
+                keysToRemove.Add(clashKey);
+            }
+
+            if (keysToRemove == null)
+                return;
+
+            foreach (ulong clashKey in keysToRemove)
+                ActiveBladeClashes.Remove(clashKey);
+        }
+
+        private bool IsBladeClashTarget(Collider other)
+        {
+            if (other == null)
+                return false;
+
+            KnifeBlade otherBlade = other.GetComponentInParent<KnifeBlade>();
+            if (otherBlade == null || otherBlade == this)
+                return false;
+
+            if (!otherBlade.slicingEnabled)
+                return false;
+
+            if (IsPartOfOwner(otherBlade.gameObject) || otherBlade.IsPartOfOwner(gameObject))
+                return false;
+
+            return true;
+        }
+
+        private ulong GetBladeClashKey(KnifeBlade otherBlade)
+        {
+            int thisId = GetInstanceID();
+            int otherId = otherBlade != null ? otherBlade.GetInstanceID() : 0;
+            uint lowId = (uint)Mathf.Min(thisId, otherId);
+            uint highId = (uint)Mathf.Max(thisId, otherId);
+            return ((ulong)lowId << 32) | highId;
         }
 
         private void OnDrawGizmosSelected()
