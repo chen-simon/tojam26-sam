@@ -13,6 +13,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float maxHitstopFrames = 12f;
         [SerializeField] private float attackerHitstopAnimSpeed = 0.05f;
         [SerializeField] private float victimStunAnimSpeed = 1f;
+        [SerializeField] private float baseShakeAmplitude = 1f;
 
         private Coroutine activeHitstop;
         private Animator currentVictimAnimator;
@@ -49,10 +50,10 @@ namespace ToJam26.Gameplay.Manager
 
             currentVictimAnimator = victimAnimator;
             currentVictimScale = victimScale;
-            activeHitstop = StartCoroutine(HitstopCoroutine(victimAnimator, victimScale, duration));
+            activeHitstop = StartCoroutine(HitstopCoroutine(victimAnimator, victimScale, duration, knockbackMultiplier));
         }
 
-        private IEnumerator HitstopCoroutine(Animator victimAnimator, ScaleController victimScale, float duration)
+        private IEnumerator HitstopCoroutine(Animator victimAnimator, ScaleController victimScale, float duration, float knockbackMultiplier)
         {
             PlayerController[] allPlayers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             foreach (PlayerController pc in allPlayers)
@@ -67,7 +68,7 @@ namespace ToJam26.Gameplay.Manager
             if (victimScale != null)
                 victimScale.PauseKnockback();
 
-            SetCameraShake(true);
+            SetCameraShake(true, knockbackMultiplier);
 
             yield return new WaitForSeconds(duration);
 
@@ -96,15 +97,18 @@ namespace ToJam26.Gameplay.Manager
             activeHitstop = null;
         }
 
-        private void SetCameraShake(bool enabled)
+        private void SetCameraShake(bool enabled, float knockbackMultiplier = 1f)
         {
             PlayerCameraController[] cams = FindObjectsByType<PlayerCameraController>(FindObjectsSortMode.None);
             foreach (PlayerCameraController cam in cams)
             {
                 CinemachineBasicMultiChannelPerlin noise =
                     cam.GetComponent<CinemachineBasicMultiChannelPerlin>();
-                if (noise != null)
-                    noise.enabled = enabled;
+                if (noise == null)
+                    continue;
+
+                noise.AmplitudeGain = baseShakeAmplitude * knockbackMultiplier;
+                noise.enabled = enabled;
             }
         }
     }
