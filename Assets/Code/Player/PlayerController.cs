@@ -12,6 +12,7 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private ScaleController scaleController;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Animator animator;
+        [SerializeField] private Animator hitUIAnimator;
         [SerializeField] private KnifeBlade[] attackHitboxes;
         [SerializeField] private PlayerCameraController playerCameraController;
 
@@ -42,6 +43,7 @@ namespace ToJam26.Gameplay.Player
         private static readonly int AnimForwardVel = Animator.StringToHash("forward_vel");
         private static readonly int AnimRightVel = Animator.StringToHash("right_vel");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
+        private static readonly int AnimGotHit = Animator.StringToHash("Got Hit");
 
         private void OnEnable()
         {
@@ -321,6 +323,17 @@ namespace ToJam26.Gameplay.Player
         {
             if (animator != null)
                 animator.speed = speed;
+        }
+
+        public void SetHitUIAnimator(Animator animator)
+        {
+            hitUIAnimator = animator;
+        }
+
+        public void TriggerHitUI()
+        {
+            if (hitUIAnimator != null)
+                hitUIAnimator.SetTrigger(AnimGotHit);
         }
 
         public Transform GetCameraTransform() => cameraTransform;
