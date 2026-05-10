@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.SceneManagement;
 using ToJam26.Gameplay.Player;
 
 namespace ToJam26.Gameplay.Manager
@@ -342,7 +341,7 @@ namespace ToJam26.Gameplay.Manager
             restartInputUnlockTime = Time.unscaledTime + Mathf.Max(0f, restartInputDelaySeconds);
 
             if (playerManager != null)
-                playerManager.SetPlayersGameplayEnabled(false);
+                playerManager.SendPlayersToLobby();
 
             if (debugLogs)
             {
@@ -476,7 +475,7 @@ namespace ToJam26.Gameplay.Manager
             if (!HasAnyRestartInputThisFrame())
                 return;
 
-            SceneManager.LoadScene(restartSceneIndex);
+            StartMatch();
         }
 
         private static bool HasAnyRestartInputThisFrame()

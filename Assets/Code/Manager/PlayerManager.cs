@@ -10,6 +10,8 @@ public class PlayerManager : MonoBehaviour
     [SerializeField]
     private List<Transform> startingPoints;
     [SerializeField]
+    private List<Transform> lobbySpawns;
+    [SerializeField]
     private List<LayerMask> playerLayers;
     
     [SerializeField] private Transform playersParent;
@@ -137,6 +139,28 @@ public class PlayerManager : MonoBehaviour
 
         PlayerController playerController = player.GetComponent<PlayerController>();
         playerController?.DisableAttackHitbox();
+    }
+
+    public void SendPlayersToLobby()
+    {
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (i >= lobbySpawns.Count) break;
+
+            PlayerInput player = players[i];
+            if (player == null) continue;
+
+            Transform spawn = lobbySpawns[i];
+
+            CharacterController cc = player.GetComponent<CharacterController>();
+            if (cc) cc.enabled = false;
+            player.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+            if (cc) cc.enabled = true;
+
+            var vcam = player.GetComponentInChildren<CinemachineCamera>();
+            if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
+                camController.SetSpawnOrientation(spawn);
+        }
     }
 
     public void SetPlayersGameplayEnabled(bool enabled)
