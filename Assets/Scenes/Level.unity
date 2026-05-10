@@ -8750,6 +8750,7 @@ MonoBehaviour:
   roundEndDelaySeconds: 2
   postMatchLobbyDelaySeconds: 2
   fallThresholdY: -14
+  waterSplashHeightOffset: 0.75
   debugLogs: 1
 --- !u!114 &1550303677
 MonoBehaviour:

@@ -37,6 +37,7 @@ namespace ToJam26.Gameplay.Player
         private bool isKnockbackPaused;
         private bool isEliminated;
         private bool isInitialized;
+        private CharacterController characterController;
 
         public delegate void OnScaleChangedDelegate(float newScale, float newMass);
         public OnScaleChangedDelegate OnScaleChanged;
@@ -73,6 +74,9 @@ namespace ToJam26.Gameplay.Player
 
             if (meshFilter == null)
                 meshFilter = GetComponentInChildren<MeshFilter>();
+
+            if (characterController == null)
+                characterController = GetComponent<CharacterController>();
 
             if (meshFilter != null && meshFilter.sharedMesh != null)
             {
@@ -217,9 +221,16 @@ namespace ToJam26.Gameplay.Player
             isKnockedBack = false;
             isKnockbackPaused = false;
             currentKnockbackVelocity = Vector3.zero;
+
+            PlayerController playerController = GetComponent<PlayerController>();
+            if (playerController != null)
+                playerController.SetGameplayEnabled(false);
+
+            SetCollisionEnabled(false);
+            SetRenderersVisible(false);
+
             Debug.Log($"[ScaleController] Player {gameObject.name} has been eliminated!", this);
             OnEliminated?.Invoke(this);
-            gameObject.SetActive(false);
         }
 
         public void ResetToOriginal()
@@ -238,7 +249,35 @@ namespace ToJam26.Gameplay.Player
             currentKnockbackVelocity = Vector3.zero;
             isEliminated = false;
 
+            SetCollisionEnabled(true);
+            SetRenderersVisible(true);
+
             OnScaleChanged?.Invoke(currentScale, currentMass);
+        }
+
+        private void SetCollisionEnabled(bool enabled)
+        {
+            if (characterController != null)
+                characterController.enabled = enabled;
+
+            Collider[] colliders = GetComponentsInChildren<Collider>(true);
+            foreach (Collider collider in colliders)
+            {
+                if (collider == null || collider is CharacterController)
+                    continue;
+
+                collider.enabled = enabled;
+            }
+        }
+
+        private void SetRenderersVisible(bool visible)
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer != null)
+                    renderer.enabled = visible;
+            }
         }
 
         private void RestoreOriginalMesh()

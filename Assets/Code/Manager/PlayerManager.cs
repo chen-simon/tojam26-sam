@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Cinemachine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Users;
 using ToJam26.Gameplay.Player;
 
 public class PlayerManager : MonoBehaviour
@@ -12,6 +13,7 @@ public class PlayerManager : MonoBehaviour
     private readonly Dictionary<PlayerInput, CinemachineCamera> playerVirtualCameras = new();
     private readonly Dictionary<PlayerInput, Camera> playerOutputCameras = new();
     private readonly Dictionary<PlayerInput, CinemachineBrain> playerCameraBrains = new();
+    private readonly Dictionary<PlayerInput, List<InputDevice>> playerPairedDevices = new();
 
     [SerializeField]
     private List<Transform> startingPoints;
@@ -74,12 +76,15 @@ public class PlayerManager : MonoBehaviour
         }
 
         players.Add(player);
+        CachePlayerDevices(player);
+        player.neverAutoSwitchControlSchemes = true;
 
         player.transform.parent = playersParent;
         player.gameObject.name = "P" + players.Count.ToString();
         int playerIndex = players.Count - 1;
 
         CacheAndDetachCameraRig(player);
+        EnsurePlayerInputActive(player);
 
         Transform spawnPoint = GetLobbySpawnPoint(playerIndex) ?? GetStartingPoint(playerIndex);
         MovePlayerToPoint(player, spawnPoint, true, joinCameraReframeDuration);
@@ -154,6 +159,9 @@ public class PlayerManager : MonoBehaviour
 
         if (!player.gameObject.activeSelf)
             player.gameObject.SetActive(true);
+
+        EnsurePlayerInputActive(player);
+
         MovePlayerToPoint(player, GetStartingPoint(playerIndex), true, roundStartCameraReframeDuration);
 
         PlayerController playerController = player.GetComponent<PlayerController>();
@@ -168,6 +176,8 @@ public class PlayerManager : MonoBehaviour
             PlayerInput player = players[i];
             if (player == null)
                 continue;
+
+            EnsurePlayerInputActive(player);
 
             Transform spawn = GetLobbySpawnPoint(i) ?? GetStartingPoint(i);
             MovePlayerToPoint(player, spawn, true, lobbyCameraReframeDuration);
@@ -303,6 +313,71 @@ public class PlayerManager : MonoBehaviour
             playerInputManager.DisableJoining();
         else
             playerInputManager.EnableJoining();
+    }
+
+    private void EnsurePlayerInputActive(PlayerInput player)
+    {
+        if (player == null)
+            return;
+
+        if (!player.enabled)
+            player.enabled = true;
+
+        RestorePlayerDevices(player);
+        player.ActivateInput();
+
+        if (player.actions == null)
+            return;
+
+        player.actions.Enable();
+
+        if (player.user.valid)
+            player.user.AssociateActionsWithUser(player.actions);
+
+        InputActionMap playerActionMap = player.actions.FindActionMap("Player", throwIfNotFound: false);
+        if (playerActionMap != null && !playerActionMap.enabled)
+            playerActionMap.Enable();
+
+        if (player.currentActionMap == null || player.currentActionMap != playerActionMap)
+            player.SwitchCurrentActionMap("Player");
+    }
+
+    private void CachePlayerDevices(PlayerInput player)
+    {
+        if (player == null)
+            return;
+
+        List<InputDevice> devices = new();
+        foreach (InputDevice device in player.devices)
+        {
+            if (device != null)
+                devices.Add(device);
+        }
+
+        playerPairedDevices[player] = devices;
+    }
+
+    private void RestorePlayerDevices(PlayerInput player)
+    {
+        if (player == null || !playerPairedDevices.TryGetValue(player, out List<InputDevice> cachedDevices))
+            return;
+
+        if (player.devices.Count > 0 || cachedDevices.Count == 0)
+            return;
+
+        if (player.user.valid)
+            player.user.UnpairDevices();
+
+        foreach (InputDevice device in cachedDevices)
+        {
+            if (device == null)
+                continue;
+
+            if (player.user.valid)
+                InputUser.PerformPairingWithDevice(device, player.user);
+            else
+                InputUser.PerformPairingWithDevice(device);
+        }
     }
 }
 

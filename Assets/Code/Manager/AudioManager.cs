@@ -367,15 +367,32 @@ namespace ToJam26.Gameplay.Manager
                 fallingWaterParticlePrefab,
                 splashPosition,
                 fallingWaterParticlePrefab.transform.rotation);
+            particleInstance.SetActive(true);
+
+            Renderer[] particleRenderers = particleInstance.GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer particleRenderer in particleRenderers)
+            {
+                if (particleRenderer == null)
+                    continue;
+
+                particleRenderer.sortingOrder = 100;
+                particleRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                particleRenderer.receiveShadows = false;
+            }
 
             float destroyDelay = 5f;
-            ParticleSystem particleSystem = particleInstance.GetComponent<ParticleSystem>();
-            if (particleSystem != null)
+            ParticleSystem[] particleSystems = particleInstance.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (ParticleSystem particleSystem in particleSystems)
             {
+                if (particleSystem == null)
+                    continue;
+
+                particleSystem.Clear(true);
+                particleSystem.Play(true);
+
                 ParticleSystem.MainModule main = particleSystem.main;
-                destroyDelay = main.duration + main.startLifetime.constantMax;
-                if (destroyDelay <= 0f)
-                    destroyDelay = 5f;
+                float systemLifetime = main.duration + main.startLifetime.constantMax;
+                destroyDelay = Mathf.Max(destroyDelay, systemLifetime);
             }
 
             Destroy(particleInstance, destroyDelay);

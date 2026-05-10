@@ -40,6 +40,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float roundEndDelaySeconds = 2f;
         [SerializeField] private float postMatchLobbyDelaySeconds = 2f;
         [SerializeField] private float fallThresholdY = -10f;
+        [SerializeField] private float waterSplashHeightOffset = 0.75f;
 
         [Header("Debug")]
         [SerializeField] private bool debugLogs = true;
@@ -346,7 +347,7 @@ namespace ToJam26.Gameplay.Manager
                 {
                     waterTouchedPlayers.Add(player);
                     Vector3 splashPosition = player.transform.position;
-                    splashPosition.y = waterSurfaceY;
+                    splashPosition.y = waterSurfaceY + waterSplashHeightOffset;
                     PlayerTouchedWater?.Invoke(player, splashPosition);
                 }
 
