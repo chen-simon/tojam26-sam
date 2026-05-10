@@ -54,6 +54,7 @@ namespace ToJam26.Gameplay.Player
         private static readonly int AnimRightVel = Animator.StringToHash("right_vel");
         private static readonly int AnimAttack = Animator.StringToHash("Attack");
         private static readonly int AnimGotHit = Animator.StringToHash("Got Hit");
+        private static readonly int AnimIsFalling = Animator.StringToHash("isFalling");
         private const string SweatEffectObjectName = "effect-sweat";
         private const string HitEffectLeftObjectName = "effect-gothit-left";
         private const string HitEffectRightObjectName = "effect-gothit-right";
@@ -339,6 +340,7 @@ namespace ToJam26.Gameplay.Player
                 smoothedRightVel = Mathf.Lerp(smoothedRightVel, rawRight, speedDamping * Time.deltaTime);
                 animator.SetFloat(AnimForwardVel, smoothedForwardVel);
                 animator.SetFloat(AnimRightVel, smoothedRightVel);
+                animator.SetBool(AnimIsFalling, !characterController.isGrounded);
             }
 
             bool isFreeLook = playerCameraController == null || playerCameraController.IsFreeLook;
@@ -393,6 +395,8 @@ namespace ToJam26.Gameplay.Player
             movementInput = Vector3.zero;
             verticalVelocity = 0f;
             DisableAttackHitbox();
+            animator.SetBool("isFalling", false);
+            
 
             if (animator != null)
             {
