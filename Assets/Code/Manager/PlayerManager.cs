@@ -60,16 +60,13 @@ public class PlayerManager : MonoBehaviour
 
         player.transform.parent = playersParent;
         player.gameObject.name = "P" + players.Count.ToString();
-
-        var cc = player.GetComponent<CharacterController>();
-        if (cc) cc.enabled = false;
-        Transform startPoint = startingPoints[players.Count - 1];
-        player.transform.SetPositionAndRotation(startPoint.position, startPoint.rotation);
-        if (cc) cc.enabled = true;
+        int playerIndex = players.Count - 1;
+        Transform spawnPoint = GetLobbySpawnPoint(playerIndex) ?? GetStartingPoint(playerIndex);
+        MovePlayerToPoint(player, spawnPoint, true);
 
         //convert layer mask (bit) to an integer
-        int layerToAdd = (int)Mathf.Log(playerLayers[players.Count - 1].value, 2);
-        int channel = 1 << (players.Count - 1);
+        int layerToAdd = (int)Mathf.Log(playerLayers[playerIndex].value, 2);
+        int channel = 1 << playerIndex;
 
         //set the layer
         var vcam = player.GetComponentInChildren<CinemachineCamera>();
@@ -78,13 +75,16 @@ public class PlayerManager : MonoBehaviour
 
         player.GetComponentInChildren<CinemachineBrain>().ChannelMask = (OutputChannels)channel;
 
-        if (vcam.TryGetComponent<PlayerCameraController>(out var camController))
-            camController.SetSpawnOrientation(startPoint);
+        if (vcam.TryGetComponent<PlayerCameraController>(out var camController) && spawnPoint != null)
+            camController.SetSpawnOrientation(spawnPoint);
 
         var cam = player.GetComponentInChildren<Camera>();
         foreach (var mask in playerLayers)
             cam.cullingMask &= ~mask.value;
         cam.cullingMask |= 1 << layerToAdd;
+
+        if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
+            playerController.SetGameplayEnabled(true);
 
         PlayerJoined?.Invoke(player);
         RefreshJoiningState();
@@ -119,50 +119,26 @@ public class PlayerManager : MonoBehaviour
 
         if (!player.gameObject.activeSelf)
             player.gameObject.SetActive(true);
-
-        ScaleController scaleController = player.GetComponent<ScaleController>();
-        scaleController?.ResetToOriginal();
-
-        CharacterController characterController = player.GetComponent<CharacterController>();
-        if (characterController != null)
-            characterController.enabled = false;
-
-        Transform spawnPoint = startingPoints[playerIndex];
-        player.transform.SetPositionAndRotation(spawnPoint.position, spawnPoint.rotation);
-
-        if (characterController != null)
-            characterController.enabled = true;
-
-        var vcam = player.GetComponentInChildren<CinemachineCamera>();
-        if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
-            camController.SetSpawnOrientation(spawnPoint);
+        MovePlayerToPoint(player, GetStartingPoint(playerIndex), true);
 
         PlayerController playerController = player.GetComponent<PlayerController>();
-        playerController?.DisableAttackHitbox();
+        if (playerController != null)
+            playerController.SetGameplayEnabled(false);
     }
 
     public void SendPlayersToLobby()
     {
         for (int i = 0; i < players.Count; i++)
         {
-            if (i >= lobbySpawns.Count) break;
-
             PlayerInput player = players[i];
-            if (player == null) continue;
+            if (player == null)
+                continue;
 
-            Transform spawn = lobbySpawns[i];
+            Transform spawn = GetLobbySpawnPoint(i) ?? GetStartingPoint(i);
+            MovePlayerToPoint(player, spawn, true);
 
-            CharacterController cc = player.GetComponent<CharacterController>();
-            if (cc) cc.enabled = false;
-            player.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
-            if (cc) cc.enabled = true;
-
-            var vcam = player.GetComponentInChildren<CinemachineCamera>();
-            if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
-                camController.SetSpawnOrientation(spawn);
-
-            if (player.TryGetComponent<PlayerController>(out var pc))
-                pc.SetGameplayEnabled(true);
+            if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
+                playerController.SetGameplayEnabled(true);
         }
     }
 
@@ -177,6 +153,50 @@ public class PlayerManager : MonoBehaviour
             if (playerController != null)
                 playerController.SetGameplayEnabled(enabled);
         }
+    }
+
+    private Transform GetStartingPoint(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= startingPoints.Count)
+            return null;
+
+        return startingPoints[playerIndex];
+    }
+
+    private Transform GetLobbySpawnPoint(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= lobbySpawns.Count)
+            return null;
+
+        return lobbySpawns[playerIndex];
+    }
+
+    private void MovePlayerToPoint(PlayerInput player, Transform spawnPoint, bool resetScale)
+    {
+        if (player == null || spawnPoint == null)
+            return;
+
+        if (!player.gameObject.activeSelf)
+            player.gameObject.SetActive(true);
+
+        if (resetScale && player.TryGetComponent<ScaleController>(out ScaleController scaleController))
+            scaleController.ResetToOriginal();
+
+        CharacterController characterController = player.GetComponent<CharacterController>();
+        if (characterController != null)
+            characterController.enabled = false;
+
+        player.transform.SetPositionAndRotation(spawnPoint.position, spawnPoint.rotation);
+
+        if (characterController != null)
+            characterController.enabled = true;
+
+        var vcam = player.GetComponentInChildren<CinemachineCamera>();
+        if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
+            camController.SetSpawnOrientation(spawnPoint);
+
+        if (player.TryGetComponent<PlayerController>(out PlayerController playerController))
+            playerController.DisableAttackHitbox();
     }
 
     private void RefreshJoiningState()

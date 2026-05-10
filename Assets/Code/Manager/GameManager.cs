@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 using ToJam26.Gameplay.Player;
 
 namespace ToJam26.Gameplay.Manager
@@ -17,14 +16,15 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private int requiredPlayerCount = 2;
         [SerializeField] private int maxRounds = 3;
         [SerializeField] private int roundsToWin = 2;
+        [SerializeField] private bool useLobbyReadyFlow = true;
+        [SerializeField] private List<LobbyReadyZone> lobbyReadyZones = new();
         [SerializeField] private bool autoStartWhenEnoughPlayers = true;
-        [SerializeField] private int restartSceneIndex = 0;
-        [SerializeField] private float restartInputDelaySeconds = 1f;
 
         [Header("Round Settings")]
         [SerializeField] private float roundDurationSeconds = 60f;
         [SerializeField] private float roundStartDelaySeconds = 1.5f;
         [SerializeField] private float roundEndDelaySeconds = 2f;
+        [SerializeField] private float postMatchLobbyDelaySeconds = 2f;
         [SerializeField] private float fallThresholdY = -10f;
 
         [Header("Debug")]
@@ -40,15 +40,14 @@ namespace ToJam26.Gameplay.Manager
         private float remainingRoundTime;
         private int currentRoundNumber;
         private bool matchStarted;
-        private bool matchEnded;
+        private bool matchCompleted;
         private bool roundActive;
         private bool resolvingRound;
-        private float restartInputUnlockTime;
 
         public float RemainingRoundTime => remainingRoundTime;
         public int CurrentRoundNumber => currentRoundNumber;
         public bool IsRoundActive => roundActive;
-        public bool IsMatchEnded => matchEnded;
+        public bool IsMatchEnded => matchCompleted;
         public float FallThresholdY => fallThresholdY;
 
         private void Awake()
@@ -67,7 +66,9 @@ namespace ToJam26.Gameplay.Manager
 
             RegisterExistingPlayers();
 
-            if (autoStartWhenEnoughPlayers)
+            if (useLobbyReadyFlow)
+                EnterLobbyState();
+            else if (autoStartWhenEnoughPlayers)
                 TryStartMatch();
         }
 
@@ -89,9 +90,11 @@ namespace ToJam26.Gameplay.Manager
 
         private void Update()
         {
-            if (matchEnded)
+            if (!matchStarted)
             {
-                HandleMatchEndRestartInput();
+                if (useLobbyReadyFlow)
+                    TryStartMatchFromLobbyReady();
+
                 return;
             }
 
@@ -121,12 +124,11 @@ namespace ToJam26.Gameplay.Manager
             StopRoundFlowRoutine();
 
             matchStarted = true;
-            matchEnded = false;
+            matchCompleted = false;
             roundActive = false;
             resolvingRound = false;
             currentRoundNumber = 0;
             remainingRoundTime = roundDurationSeconds;
-            restartInputUnlockTime = 0f;
 
             ResetScores();
             BeginNextRound();
@@ -144,7 +146,7 @@ namespace ToJam26.Gameplay.Manager
         {
             RegisterPlayer(playerInput);
 
-            if (autoStartWhenEnoughPlayers)
+            if (!useLobbyReadyFlow && autoStartWhenEnoughPlayers)
                 TryStartMatch();
         }
 
@@ -176,8 +178,19 @@ namespace ToJam26.Gameplay.Manager
 
         private void TryStartMatch()
         {
-            if (matchStarted || matchEnded || !HasEnoughPlayers())
+            if (matchStarted || resolvingRound || !HasEnoughPlayers())
                 return;
+
+            StartMatch();
+        }
+
+        private void TryStartMatchFromLobbyReady()
+        {
+            if (!HasEnoughPlayers() || !AreAllReadyZonesOccupied())
+                return;
+
+            if (debugLogs)
+                Debug.Log("[GameManager] All lobby ready zones are occupied. Starting match.", this);
 
             StartMatch();
         }
@@ -187,9 +200,34 @@ namespace ToJam26.Gameplay.Manager
             return matchPlayers.Count >= requiredPlayerCount;
         }
 
+        private bool AreAllReadyZonesOccupied()
+        {
+            if (!useLobbyReadyFlow)
+                return true;
+
+            if (lobbyReadyZones == null || lobbyReadyZones.Count == 0)
+                return false;
+
+            HashSet<ScaleController> readyPlayers = new();
+            foreach (LobbyReadyZone readyZone in lobbyReadyZones)
+            {
+                if (readyZone == null)
+                    return false;
+
+                ScaleController occupyingPlayer = readyZone.OccupyingPlayer;
+                if (occupyingPlayer == null || !matchPlayers.Contains(occupyingPlayer))
+                    return false;
+
+                if (!readyPlayers.Add(occupyingPlayer))
+                    return false;
+            }
+
+            return readyPlayers.Count >= requiredPlayerCount;
+        }
+
         private void BeginNextRound()
         {
-            if (matchEnded)
+            if (!matchStarted)
                 return;
 
             currentRoundNumber++;
@@ -270,7 +308,7 @@ namespace ToJam26.Gameplay.Manager
 
         private void HandlePlayerEliminated(ScaleController eliminatedPlayer)
         {
-            if (!roundActive || resolvingRound || matchEnded)
+            if (!roundActive || resolvingRound || !matchStarted)
                 return;
 
             ScaleController winner = GetRemainingPlayer(eliminatedPlayer);
@@ -287,7 +325,7 @@ namespace ToJam26.Gameplay.Manager
 
         private void FinalizeRound(ScaleController winner, string reason)
         {
-            if (matchEnded)
+            if (!matchStarted)
                 return;
 
             roundActive = false;
@@ -333,18 +371,20 @@ namespace ToJam26.Gameplay.Manager
         private void EndMatch(ScaleController winner, string reason)
         {
             StopRoundFlowRoutine();
-
-            matchEnded = true;
-            matchStarted = false;
             roundActive = false;
-            resolvingRound = false;
-            restartInputUnlockTime = Time.unscaledTime + Mathf.Max(0f, restartInputDelaySeconds);
+            resolvingRound = true;
+            matchCompleted = true;
+
+            if (playerManager != null)
+                playerManager.SetPlayersGameplayEnabled(false);
 
             if (debugLogs)
             {
                 string winnerName = winner != null ? winner.name : "<none>";
                 Debug.Log($"[GameManager] Match winner: {winnerName}. Reason: {reason}", this);
             }
+
+            roundFlowRoutine = StartCoroutine(ReturnToLobbyRoutine());
         }
 
         private void RespawnMatchPlayers()
@@ -464,39 +504,42 @@ namespace ToJam26.Gameplay.Manager
             roundFlowRoutine = null;
         }
 
-        private void HandleMatchEndRestartInput()
+        private IEnumerator ReturnToLobbyRoutine()
         {
-            if (Time.unscaledTime < restartInputUnlockTime)
-                return;
+            if (postMatchLobbyDelaySeconds > 0f)
+                yield return new WaitForSeconds(postMatchLobbyDelaySeconds);
 
-            if (!HasAnyRestartInputThisFrame())
-                return;
+            roundFlowRoutine = null;
+            EnterLobbyState();
+        }
+
+        private void EnterLobbyState()
+        {
+            StopRoundFlowRoutine();
+
+            matchStarted = false;
+            matchCompleted = false;
+            roundActive = false;
+            resolvingRound = false;
+            currentRoundNumber = 0;
+            remainingRoundTime = 0f;
+
+            ResetScores();
+
+            if (cuttingGameManager != null)
+                cuttingGameManager.ClearDetachedPieces();
 
             if (playerManager != null)
                 playerManager.SendPlayersToLobby();
-        }
 
-        private static bool HasAnyRestartInputThisFrame()
-        {
-            foreach (InputDevice device in InputSystem.devices)
+            if (lobbyReadyZones == null)
+                return;
+
+            foreach (LobbyReadyZone readyZone in lobbyReadyZones)
             {
-                if (device == null)
-                    continue;
-
-                foreach (InputControl control in device.allControls)
-                {
-                    if (control is not ButtonControl button)
-                        continue;
-
-                    if (button.synthetic || button.noisy)
-                        continue;
-
-                    if (button.wasPressedThisFrame)
-                        return true;
-                }
+                if (readyZone != null)
+                    readyZone.ClearOccupants();
             }
-
-            return false;
         }
     }
 }
