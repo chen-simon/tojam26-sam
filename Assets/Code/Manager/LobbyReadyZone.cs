@@ -7,6 +7,10 @@ namespace ToJam26.Gameplay.Manager
     [RequireComponent(typeof(Collider))]
     public class LobbyReadyZone : MonoBehaviour
     {
+        [SerializeField] private Renderer zoneRenderer;
+        [SerializeField] private Material readyMaterial;
+        [SerializeField] private Material unreadyMaterial;
+
         private readonly Dictionary<ScaleController, int> occupants = new();
 
         public int OccupantCount
@@ -57,6 +61,7 @@ namespace ToJam26.Gameplay.Manager
 
             occupants.TryGetValue(player, out int contactCount);
             occupants[player] = contactCount + 1;
+            UpdateColor();
         }
 
         private void OnTriggerExit(Collider other)
@@ -68,10 +73,19 @@ namespace ToJam26.Gameplay.Manager
             if (contactCount <= 1)
             {
                 occupants.Remove(player);
+                UpdateColor();
                 return;
             }
 
             occupants[player] = contactCount - 1;
+            UpdateColor();
+        }
+
+        private void UpdateColor()
+        {
+            if (zoneRenderer == null)
+                return;
+            zoneRenderer.material = OccupantCount > 0 ? readyMaterial : unreadyMaterial;
         }
 
         public void ClearOccupants()

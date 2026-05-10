@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3449140848486826217}
+  - component: {fileID: 2520442125515105532}
   m_Layer: 0
   m_Name: effect-hit
   m_TagString: Untagged
@@ -32,6 +33,19 @@ Transform:
   - {fileID: 58984810120015654}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2520442125515105532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6536286247652727200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f587082cd972492b946b271a85b1f95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lifeTime: 0.31
 --- !u!1 &6612344269717928806
 GameObject:
   m_ObjectHideFlags: 0
@@ -43,7 +57,6 @@ GameObject:
   - component: {fileID: 58984810120015654}
   - component: {fileID: 3608779571903822409}
   - component: {fileID: 4792514648309728917}
-  - component: {fileID: 531196884198143517}
   m_Layer: 0
   m_Name: Effect
   m_TagString: Untagged
@@ -143,16 +156,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &531196884198143517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6612344269717928806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f587082cd972492b946b271a85b1f95, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lifeTime: 0.32

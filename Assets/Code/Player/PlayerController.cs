@@ -433,6 +433,7 @@ namespace ToJam26.Gameplay.Player
 
         public Transform GetCameraTransform() => cameraTransform;
         public Animator GetAnimator() => animator;
+        public PlayerCameraController GetCameraController() => playerCameraController;
 
         private void PlayHitReactionEffects()
         {
