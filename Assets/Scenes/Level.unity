@@ -1223,8 +1223,8 @@ RectTransform:
   m_GameObject: {fileID: 757721079}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 1.3, y: 2, z: 2}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1364667887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3009,6 +3009,10 @@ MonoBehaviour:
   - serializedVersion: 2
     m_Bits: 128
   playersParent: {fileID: 2111444348}
+  cameraRigsParent: {fileID: 0}
+  joinCameraReframeDuration: 0.75
+  roundStartCameraReframeDuration: 1
+  lobbyCameraReframeDuration: 0.8
 --- !u!1001 &1396061868
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3413,7 +3417,6 @@ MonoBehaviour:
   - {fileID: 81566507}
   autoStartWhenEnoughPlayers: 1
   roundDurationSeconds: 60
-  roundStartDelaySeconds: 1.5
   roundEndDelaySeconds: 2
   postMatchLobbyDelaySeconds: 2
   fallThresholdY: -10
@@ -3762,7 +3765,10 @@ MonoBehaviour:
   roundRoot: {fileID: 1762268811}
   roundLabelPrefix: Round
   hideCountdownWhenIdle: 1
-  countdownAnimationLength: 4
+  enableLobbyBlur: 1
+  lobbyBlurStart: 0
+  lobbyBlurEnd: 2
+  lobbyBlurMaxRadius: 1
 --- !u!1001 &1819748055
 PrefabInstance:
   m_ObjectHideFlags: 0

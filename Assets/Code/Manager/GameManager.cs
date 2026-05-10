@@ -4,12 +4,13 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ToJam26.Gameplay.Player;
+using ToJam26.Gameplay.Interface;
 
 namespace ToJam26.Gameplay.Manager
 {
     public class GameManager : MonoBehaviour
     {
-        public event Action<int, int, float> RoundPreparationStarted;
+        public event Action<int, int> RoundPreparationStarted;
         public event Action<int, int, float> RoundStarted;
         public event Action<float> RoundTimeChanged;
         public event Action<bool> PlayerRequirementChanged;
@@ -30,7 +31,6 @@ namespace ToJam26.Gameplay.Manager
 
         [Header("Round Settings")]
         [SerializeField] private float roundDurationSeconds = 60f;
-        [SerializeField] private float roundStartDelaySeconds = 1.5f;
         [SerializeField] private float roundEndDelaySeconds = 2f;
         [SerializeField] private float postMatchLobbyDelaySeconds = 2f;
         [SerializeField] private float fallThresholdY = -10f;
@@ -45,12 +45,14 @@ namespace ToJam26.Gameplay.Manager
         private readonly Dictionary<ScaleController, int> roundWins = new();
 
         private Coroutine roundFlowRoutine;
+        private HudController hudController;
         private float remainingRoundTime;
         private int currentRoundNumber;
         private bool matchStarted;
         private bool matchCompleted;
         private bool roundActive;
         private bool resolvingRound;
+        private bool waitingForRoundCountdown;
 
         public float RemainingRoundTime => remainingRoundTime;
         public int CurrentRoundNumber => currentRoundNumber;
@@ -67,12 +69,21 @@ namespace ToJam26.Gameplay.Manager
 
             if (cuttingGameManager == null)
                 cuttingGameManager = FindAnyObjectByType<CuttingGameManager>();
+
+            if (hudController == null)
+                hudController = FindAnyObjectByType<HudController>();
         }
 
         private void OnEnable()
         {
             if (playerManager != null)
                 playerManager.PlayerJoined += HandlePlayerJoined;
+
+            if (hudController == null)
+                hudController = FindAnyObjectByType<HudController>();
+
+            if (hudController != null)
+                hudController.CountdownCompleted += HandleCountdownCompleted;
 
             RegisterExistingPlayers();
 
@@ -86,6 +97,9 @@ namespace ToJam26.Gameplay.Manager
         {
             if (playerManager != null)
                 playerManager.PlayerJoined -= HandlePlayerJoined;
+
+            if (hudController != null)
+                hudController.CountdownCompleted -= HandleCountdownCompleted;
 
             foreach (ScaleController player in matchPlayers)
             {
@@ -258,6 +272,7 @@ namespace ToJam26.Gameplay.Manager
         {
             resolvingRound = true;
             roundActive = false;
+            waitingForRoundCountdown = false;
 
             if (playerManager != null)
                 playerManager.SetPlayersGameplayEnabled(false);
@@ -270,10 +285,11 @@ namespace ToJam26.Gameplay.Manager
             if (debugLogs)
                 Debug.Log($"[GameManager] Preparing round {currentRoundNumber}.", this);
 
-            RoundPreparationStarted?.Invoke(currentRoundNumber, maxRounds, roundStartDelaySeconds);
+            waitingForRoundCountdown = hudController != null && hudController.CanPlayCountdown;
+            RoundPreparationStarted?.Invoke(currentRoundNumber, maxRounds);
 
-            if (roundStartDelaySeconds > 0f)
-                yield return new WaitForSeconds(roundStartDelaySeconds);
+            if (waitingForRoundCountdown)
+                yield return new WaitUntil(() => !waitingForRoundCountdown);
 
             remainingRoundTime = roundDurationSeconds;
             roundActive = true;
@@ -286,6 +302,11 @@ namespace ToJam26.Gameplay.Manager
 
             if (debugLogs)
                 Debug.Log($"[GameManager] Round {currentRoundNumber} started.", this);
+        }
+
+        private void HandleCountdownCompleted()
+        {
+            waitingForRoundCountdown = false;
         }
 
         private void CheckForRingOuts()

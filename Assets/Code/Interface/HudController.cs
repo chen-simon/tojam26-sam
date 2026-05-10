@@ -11,6 +11,8 @@ namespace ToJam26.Gameplay.Interface
     {
         private static readonly int CountdownStartTrigger = Animator.StringToHash("Start");
 
+        public event System.Action CountdownCompleted;
+
         [Header("References")]
         [SerializeField] private GameManager gameManager;
         [SerializeField] private TMP_Text timerText;
@@ -24,7 +26,6 @@ namespace ToJam26.Gameplay.Interface
         [SerializeField] private GameObject roundRoot;
         [SerializeField] private string roundLabelPrefix = "Round";
         [SerializeField] private bool hideCountdownWhenIdle = true;
-        [SerializeField] private float countdownAnimationLength;
 
         [Header("Lobby Blur")]
         [SerializeField] private bool enableLobbyBlur = true;
@@ -36,6 +37,10 @@ namespace ToJam26.Gameplay.Interface
         private Volume lobbyBlurVolume;
         private VolumeProfile lobbyBlurProfile;
         private DepthOfField lobbyBlurDepthOfField;
+        private HudCountdownAnimationRelay countdownRelay;
+        private bool countdownPending;
+
+        public bool CanPlayCountdown => countdownAnimator != null;
 
         private void Reset()
         {
@@ -138,6 +143,15 @@ namespace ToJam26.Gameplay.Interface
                 if (countdownImageTransform != null)
                     countdownAnimator = countdownImageTransform.GetComponent<Animator>();
             }
+
+            if (countdownAnimator != null)
+            {
+                countdownRelay = countdownAnimator.GetComponent<HudCountdownAnimationRelay>();
+                if (countdownRelay == null)
+                    countdownRelay = countdownAnimator.gameObject.AddComponent<HudCountdownAnimationRelay>();
+
+                countdownRelay.Initialize(this);
+            }
         }
 
         private TMP_Text FindText(string relativePath)
@@ -183,7 +197,7 @@ namespace ToJam26.Gameplay.Interface
             SetCountdownVisible(false);
         }
 
-        private void HandleRoundPreparationStarted(int roundNumber, int maxRounds, float countdownDuration)
+        private void HandleRoundPreparationStarted(int roundNumber, int maxRounds)
         {
             SetRoundVisible(true);
             SetTimerVisible(true);
@@ -191,7 +205,7 @@ namespace ToJam26.Gameplay.Interface
             SetLobbyBlurActive(false);
             SetRoundLabel(roundNumber, maxRounds);
             SetCountdownVisible(true);
-            PlayCountdown(countdownDuration);
+            PlayCountdown();
         }
 
         private void HandleRoundStarted(int roundNumber, int maxRounds, float roundDuration)
@@ -289,35 +303,29 @@ namespace ToJam26.Gameplay.Interface
             countdownRoot.SetActive(visible || !hideCountdownWhenIdle);
         }
 
-        private void PlayCountdown(float targetDuration)
+        private void PlayCountdown()
         {
             if (countdownAnimator == null)
+            {
+                NotifyCountdownFinished();
                 return;
+            }
 
-            float animationLength = ResolveCountdownAnimationLength();
-            countdownAnimator.speed = animationLength > 0f && targetDuration > 0f
-                ? animationLength / targetDuration
-                : 1f;
-
+            countdownPending = true;
+            countdownAnimator.speed = 1f;
             countdownAnimator.Rebind();
             countdownAnimator.Update(0f);
             countdownAnimator.ResetTrigger(CountdownStartTrigger);
             countdownAnimator.SetTrigger(CountdownStartTrigger);
         }
 
-        private float ResolveCountdownAnimationLength()
+        public void NotifyCountdownFinished()
         {
-            if (countdownAnimationLength > 0f)
-                return countdownAnimationLength;
+            if (!countdownPending)
+                return;
 
-            if (countdownAnimator == null || countdownAnimator.runtimeAnimatorController == null)
-                return 0f;
-
-            AnimationClip[] clips = countdownAnimator.runtimeAnimatorController.animationClips;
-            if (clips == null || clips.Length == 0 || clips[0] == null)
-                return 0f;
-
-            return clips[0].length;
+            countdownPending = false;
+            CountdownCompleted?.Invoke();
         }
 
         private void EnsureLobbyBlurSetup()
