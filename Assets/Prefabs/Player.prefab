@@ -241,6 +241,7 @@ MonoBehaviour:
   bladeCollider: {fileID: 4403011550355783299}
   startEnabled: 0
   hitParticlePrefab: {fileID: 6536286247652727200, guid: d5a39639574b6004eab32ae3bd8466b2, type: 3}
+  hitStarParticlePrefab: {fileID: 1404247737402769758, guid: 8c1fd5634d08b47039b616c730f8b013, type: 3}
   cheeseParticlePrefab: {fileID: 1404247737402769758, guid: 8ca9fb693dc474bee8e44978b047612b, type: 3}
   cutParticlePrefab: {fileID: 8272196836705795941, guid: 744ad33229cc6394f883f678a9fbc9fc, type: 3}
   koParticlePrefab: {fileID: 2959059768473062645, guid: 44fd19d85b3bdec42b278dc05bcebf0e, type: 3}
