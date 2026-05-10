@@ -14,6 +14,7 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private AudioClip sliceClip;
         [SerializeField] private AudioClip hitFleshClip;
         [SerializeField] private AudioClip koClip;
+        [SerializeField] private AudioClip waterSplashClip;
         [SerializeField] private AudioClip ambienceClip;
         [SerializeField] private AudioClip crowdCheerClip;
         [SerializeField] private AudioClip bgmIntroClip;
@@ -90,12 +91,14 @@ namespace ToJam26.Gameplay.Manager
                 return;
 
             gameManager.RoundIntroStarted -= HandleRoundIntroStarted;
+            gameManager.PlayerTouchedWater -= HandlePlayerTouchedWater;
             gameManager.RoundScored -= HandleRoundScored;
             gameManager.RoundPreparationStarted -= HandleRoundPreparationStarted;
             gameManager.RoundStarted -= HandleRoundStarted;
             gameManager.LobbyEntered -= HandleLobbyEntered;
 
             gameManager.RoundIntroStarted += HandleRoundIntroStarted;
+            gameManager.PlayerTouchedWater += HandlePlayerTouchedWater;
             gameManager.RoundScored += HandleRoundScored;
             gameManager.RoundPreparationStarted += HandleRoundPreparationStarted;
             gameManager.RoundStarted += HandleRoundStarted;
@@ -112,6 +115,7 @@ namespace ToJam26.Gameplay.Manager
                 return;
 
             gameManager.RoundIntroStarted -= HandleRoundIntroStarted;
+            gameManager.PlayerTouchedWater -= HandlePlayerTouchedWater;
             gameManager.RoundScored -= HandleRoundScored;
             gameManager.RoundPreparationStarted -= HandleRoundPreparationStarted;
             gameManager.RoundStarted -= HandleRoundStarted;
@@ -189,6 +193,11 @@ namespace ToJam26.Gameplay.Manager
         private void HandleRoundIntroStarted(int roundNumber, int maxRounds)
         {
             PlayMusic(bgmIntroClip, loop: false);
+        }
+
+        private void HandlePlayerTouchedWater(ScaleController fallenPlayer)
+        {
+            PlayOneShot(waterSplashClip, sfxVolume);
         }
 
         private void HandleRoundPreparationStarted(int roundNumber, int maxRounds)

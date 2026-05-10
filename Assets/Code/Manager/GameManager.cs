@@ -15,6 +15,8 @@ namespace ToJam26.Gameplay.Manager
         public event Action<int, int, float> RoundStarted;
         public event Action<float> RoundTimeChanged;
         public event Action<bool> PlayerRequirementChanged;
+        public event Action<ScaleController> PlayerTouchedWater;
+        public event Action<ScaleController> PlayerFellOutOfArena;
         public event Action<ScaleController, int> RoundScored;
         public event Action MatchEnded;
         public event Action LobbyEntered;
@@ -22,6 +24,7 @@ namespace ToJam26.Gameplay.Manager
         [Header("References")]
         [SerializeField] private PlayerManager playerManager;
         [SerializeField] private CuttingGameManager cuttingGameManager;
+        [SerializeField] private Transform waterSurfaceReference;
 
         [Header("Match Settings")]
         [SerializeField] private int requiredPlayerCount = 2;
@@ -46,6 +49,7 @@ namespace ToJam26.Gameplay.Manager
 
         private readonly List<ScaleController> matchPlayers = new();
         private readonly Dictionary<ScaleController, int> roundWins = new();
+        private readonly HashSet<ScaleController> waterTouchedPlayers = new();
 
         private Coroutine roundFlowRoutine;
         private HudController hudController;
@@ -75,6 +79,13 @@ namespace ToJam26.Gameplay.Manager
 
             if (hudController == null)
                 hudController = FindAnyObjectByType<HudController>();
+
+            if (waterSurfaceReference == null)
+            {
+                GameObject waterObject = GameObject.Find("water");
+                if (waterObject != null)
+                    waterSurfaceReference = waterObject.transform;
+            }
         }
 
         private void OnEnable()
@@ -112,6 +123,7 @@ namespace ToJam26.Gameplay.Manager
 
             matchPlayers.Clear();
             roundWins.Clear();
+            waterTouchedPlayers.Clear();
             StopRoundFlowRoutine();
         }
 
@@ -320,11 +332,21 @@ namespace ToJam26.Gameplay.Manager
         private void CheckForRingOuts()
         {
             List<ScaleController> fallenPlayers = null;
+            float waterSurfaceY = waterSurfaceReference != null ? waterSurfaceReference.position.y : float.NegativeInfinity;
+            bool canTriggerWaterSplash = waterSurfaceReference != null;
 
             foreach (ScaleController player in matchPlayers)
             {
                 if (player == null || player.IsEliminated || !player.gameObject.activeInHierarchy)
                     continue;
+
+                if (canTriggerWaterSplash &&
+                    !waterTouchedPlayers.Contains(player) &&
+                    player.transform.position.y <= waterSurfaceY)
+                {
+                    waterTouchedPlayers.Add(player);
+                    PlayerTouchedWater?.Invoke(player);
+                }
 
                 if (player.transform.position.y >= fallThresholdY)
                     continue;
@@ -338,6 +360,7 @@ namespace ToJam26.Gameplay.Manager
 
             if (fallenPlayers.Count == 1)
             {
+                PlayerFellOutOfArena?.Invoke(fallenPlayers[0]);
                 fallenPlayers[0].Eliminate();
                 return;
             }
@@ -346,7 +369,10 @@ namespace ToJam26.Gameplay.Manager
             foreach (ScaleController fallenPlayer in fallenPlayers)
             {
                 if (fallenPlayer != null && !fallenPlayer.IsEliminated)
+                {
+                    PlayerFellOutOfArena?.Invoke(fallenPlayer);
                     fallenPlayer.Eliminate();
+                }
             }
 
             FinalizeRound(DetermineVolumeWinner(), "Multiple players fell out of the arena.");
@@ -442,6 +468,8 @@ namespace ToJam26.Gameplay.Manager
         {
             if (playerManager == null)
                 return;
+
+            waterTouchedPlayers.Clear();
 
             foreach (ScaleController player in matchPlayers)
             {
@@ -574,6 +602,7 @@ namespace ToJam26.Gameplay.Manager
             resolvingRound = false;
             currentRoundNumber = 0;
             remainingRoundTime = 0f;
+            waterTouchedPlayers.Clear();
             PlayerRequirementChanged?.Invoke(HasEnoughPlayers());
             RoundTimeChanged?.Invoke(remainingRoundTime);
             LobbyEntered?.Invoke();

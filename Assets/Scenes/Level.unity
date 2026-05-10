@@ -8735,6 +8735,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerManager: {fileID: 1394973654}
   cuttingGameManager: {fileID: 1550303675}
+  waterSurfaceReference: {fileID: 2142972984}
   requiredPlayerCount: 2
   maxRounds: 5
   roundsToWin: 3
@@ -8747,7 +8748,7 @@ MonoBehaviour:
   preRoundIntroSeconds: 0
   roundEndDelaySeconds: 2
   postMatchLobbyDelaySeconds: 2
-  fallThresholdY: -10
+  fallThresholdY: -14
   debugLogs: 1
 --- !u!114 &1550303677
 MonoBehaviour:
@@ -8765,6 +8766,7 @@ MonoBehaviour:
   sliceClip: {fileID: 8300000, guid: 882ed135b77bd1c41976079166357a2f, type: 3}
   hitFleshClip: {fileID: 8300000, guid: dd2498e64895e90459971eaee72ee7bb, type: 3}
   koClip: {fileID: 8300000, guid: aedb7853c2f59c84da4d0db1342f66ba, type: 3}
+  waterSplashClip: {fileID: 8300000, guid: d0c9c46f981bb0142ba24795d944517d, type: 3}
   ambienceClip: {fileID: 8300000, guid: 64bb9c5a75242f34b8d1b2b1fc70fab4, type: 3}
   crowdCheerClip: {fileID: 8300000, guid: 620e37e39dbdb5c449e8f30c5af7e1fb, type: 3}
   bgmIntroClip: {fileID: 8300000, guid: fa36ac485cb57a74ead0fb2261c3e28d, type: 3}
@@ -12239,11 +12241,11 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &2142972986

@@ -35,6 +35,7 @@ namespace ToJam26.Gameplay.Equipment
         private bool slicingEnabled;
         private bool sliceConsumedThisWindow;
         private static readonly HashSet<ulong> ActiveBladeClashes = new();
+        private static readonly HashSet<KnifeBlade> RegisteredBlades = new();
 
         public float CuttingForce => cuttingForce;
         public GameObject Owner => owner;
@@ -43,6 +44,8 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnEnable()
         {
+            RegisteredBlades.Add(this);
+
             if (owner == null)
             {
                 PlayerController playerController = GetComponentInParent<PlayerController>();
@@ -54,13 +57,17 @@ namespace ToJam26.Gameplay.Equipment
                 bladeCollider = GetComponent<Collider>();
 
             if (bladeCollider != null)
+            {
                 bladeCollider.isTrigger = true;
+                bladeCollider.enabled = true;
+            }
 
             SetSlicingEnabled(startEnabled);
         }
 
         private void OnDisable()
         {
+            RegisteredBlades.Remove(this);
             CleanupAllBladeClashesForThisBlade();
 
             if (bladeCollider != null)
@@ -68,6 +75,11 @@ namespace ToJam26.Gameplay.Equipment
 
             slicingEnabled = false;
             sliceConsumedThisWindow = false;
+        }
+
+        private void FixedUpdate()
+        {
+            ProbeBladeClashes();
         }
 
         private void OnTriggerEnter(Collider other)
@@ -78,6 +90,7 @@ namespace ToJam26.Gameplay.Equipment
 
         private void OnTriggerStay(Collider other)
         {
+            TryNotifyBladeClash(other);
             TrySliceFromContact(other);
         }
 
@@ -244,8 +257,8 @@ namespace ToJam26.Gameplay.Equipment
             slicingEnabled = enabled;
             sliceConsumedThisWindow = false;
 
-            if (bladeCollider != null)
-                bladeCollider.enabled = enabled;
+            if (!enabled)
+                CleanupAllBladeClashesForThisBlade();
 
             if (enableDebugLogs)
                 Debug.Log($"[KnifeBlade] Slicing {(enabled ? "enabled" : "disabled")}", this);
@@ -283,11 +296,32 @@ namespace ToJam26.Gameplay.Equipment
             if (otherBlade == null)
                 return;
 
-            ulong clashKey = GetBladeClashKey(otherBlade);
-            if (!ActiveBladeClashes.Add(clashKey))
+            TryRegisterBladeClash(otherBlade);
+        }
+
+        private void ProbeBladeClashes()
+        {
+            if (!slicingEnabled || bladeCollider == null || !bladeCollider.enabled)
                 return;
 
-            BladeClashed?.Invoke();
+            HashSet<ulong> overlappingClashKeys = null;
+
+            foreach (KnifeBlade otherBlade in RegisteredBlades)
+            {
+                if (!IsBladeClashCandidate(otherBlade))
+                    continue;
+
+                ulong clashKey = GetBladeClashKey(otherBlade);
+                if (!AreBladeCollidersOverlapping(otherBlade))
+                    continue;
+
+                overlappingClashKeys ??= new HashSet<ulong>();
+                overlappingClashKeys.Add(clashKey);
+
+                TryRegisterBladeClash(otherBlade);
+            }
+
+            CleanupStaleBladeClashes(overlappingClashKeys);
         }
 
         private void CleanupBladeClash(Collider other)
@@ -330,16 +364,88 @@ namespace ToJam26.Gameplay.Equipment
                 return false;
 
             KnifeBlade otherBlade = other.GetComponentInParent<KnifeBlade>();
+            return IsBladeClashCandidate(otherBlade);
+        }
+
+        private bool IsBladeClashCandidate(KnifeBlade otherBlade)
+        {
             if (otherBlade == null || otherBlade == this)
                 return false;
 
-            if (!otherBlade.slicingEnabled)
+            if (!slicingEnabled || !otherBlade.slicingEnabled)
+                return false;
+
+            if (bladeCollider == null || !bladeCollider.enabled)
+                return false;
+
+            if (otherBlade.bladeCollider == null || !otherBlade.bladeCollider.enabled)
                 return false;
 
             if (IsPartOfOwner(otherBlade.gameObject) || otherBlade.IsPartOfOwner(gameObject))
                 return false;
 
             return true;
+        }
+
+        private bool AreBladeCollidersOverlapping(KnifeBlade otherBlade)
+        {
+            return Physics.ComputePenetration(
+                bladeCollider,
+                bladeCollider.transform.position,
+                bladeCollider.transform.rotation,
+                otherBlade.bladeCollider,
+                otherBlade.bladeCollider.transform.position,
+                otherBlade.bladeCollider.transform.rotation,
+                out _,
+                out _);
+        }
+
+        private void TryRegisterBladeClash(KnifeBlade otherBlade)
+        {
+            if (otherBlade == null || !IsPrimaryBladeForClash(otherBlade))
+                return;
+
+            ulong clashKey = GetBladeClashKey(otherBlade);
+            if (!ActiveBladeClashes.Add(clashKey))
+                return;
+
+            if (enableDebugLogs)
+                Debug.Log($"[KnifeBlade] Blade clash detected between {name} and {otherBlade.name}", this);
+
+            BladeClashed?.Invoke();
+        }
+
+        private bool IsPrimaryBladeForClash(KnifeBlade otherBlade)
+        {
+            if (otherBlade == null)
+                return false;
+
+            return GetInstanceID() < otherBlade.GetInstanceID();
+        }
+
+        private void CleanupStaleBladeClashes(HashSet<ulong> overlappingClashKeys)
+        {
+            int thisId = GetInstanceID();
+            List<ulong> keysToRemove = null;
+            foreach (ulong clashKey in ActiveBladeClashes)
+            {
+                int lowId = (int)(clashKey >> 32);
+                int highId = (int)(clashKey & 0xffffffff);
+                if (lowId != thisId && highId != thisId)
+                    continue;
+
+                if (overlappingClashKeys != null && overlappingClashKeys.Contains(clashKey))
+                    continue;
+
+                keysToRemove ??= new List<ulong>();
+                keysToRemove.Add(clashKey);
+            }
+
+            if (keysToRemove == null)
+                return;
+
+            foreach (ulong clashKey in keysToRemove)
+                ActiveBladeClashes.Remove(clashKey);
         }
 
         private ulong GetBladeClashKey(KnifeBlade otherBlade)
