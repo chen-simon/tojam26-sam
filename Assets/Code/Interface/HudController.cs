@@ -19,6 +19,7 @@ namespace ToJam26.Gameplay.Interface
         [SerializeField] private TMP_Text roundText;
         [SerializeField] private GameObject timerRoot;
         [SerializeField] private GameObject instructionRoot;
+        [SerializeField] private GameObject readyUpTextRoot;
         [SerializeField] private GameObject countdownRoot;
         [SerializeField] private Animator countdownAnimator;
 
@@ -121,6 +122,22 @@ namespace ToJam26.Gameplay.Interface
                     instructionRoot = instructionTransform.gameObject;
             }
 
+            if (readyUpTextRoot == null)
+            {
+                TMP_Text[] textComponents = FindObjectsByType<TMP_Text>(FindObjectsSortMode.None);
+                foreach (TMP_Text textComponent in textComponents)
+                {
+                    if (textComponent == null || textComponent.gameObject == null)
+                        continue;
+
+                    if (string.Equals(textComponent.text.Trim(), "ready up", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        readyUpTextRoot = textComponent.gameObject;
+                        break;
+                    }
+                }
+            }
+
             if (roundText == null)
                 roundText = FindText("Round/Text (TMP)");
 
@@ -172,6 +189,7 @@ namespace ToJam26.Gameplay.Interface
                 SetRoundVisible(false);
                 SetTimerVisible(false);
                 SetInstructionVisible(true);
+                SetReadyUpVisible(true);
                 SetLobbyBlurActive(true);
                 SetTimerLabel(0f);
                 SetCountdownVisible(!hideCountdownWhenIdle);
@@ -185,6 +203,7 @@ namespace ToJam26.Gameplay.Interface
                 SetRoundVisible(true);
                 SetTimerVisible(true);
                 SetInstructionVisible(false);
+                SetReadyUpVisible(false);
                 SetLobbyBlurActive(false);
                 SetRoundLabel(roundNumber, gameManager.MaxRounds);
             }
@@ -195,6 +214,7 @@ namespace ToJam26.Gameplay.Interface
                 SetTimerVisible(false);
                 bool showLobbyInstruction = !gameManager.HasRequiredPlayers;
                 SetInstructionVisible(showLobbyInstruction);
+                SetReadyUpVisible(true);
                 SetLobbyBlurActive(showLobbyInstruction);
             }
 
@@ -208,6 +228,7 @@ namespace ToJam26.Gameplay.Interface
             SetRoundVisible(true);
             SetTimerVisible(true);
             SetInstructionVisible(false);
+            SetReadyUpVisible(false);
             SetLobbyBlurActive(false);
             SetRoundLabel(roundNumber, maxRounds);
             SetCountdownVisible(true);
@@ -220,6 +241,7 @@ namespace ToJam26.Gameplay.Interface
             SetRoundVisible(true);
             SetTimerVisible(true);
             SetInstructionVisible(false);
+            SetReadyUpVisible(false);
             SetLobbyBlurActive(false);
             SetRoundLabel(roundNumber, maxRounds);
             SetTimerLabel(roundDuration);
@@ -245,6 +267,7 @@ namespace ToJam26.Gameplay.Interface
             isLobbyState = false;
             SetTimerVisible(true);
             SetInstructionVisible(false);
+            SetReadyUpVisible(false);
             SetLobbyBlurActive(false);
             SetCountdownVisible(false);
             SetTimerLabel(0f);
@@ -256,6 +279,7 @@ namespace ToJam26.Gameplay.Interface
             SetRoundVisible(false);
             SetTimerVisible(false);
             SetInstructionVisible(gameManager == null || !gameManager.HasRequiredPlayers);
+            SetReadyUpVisible(true);
             SetLobbyBlurActive(gameManager == null || !gameManager.HasRequiredPlayers);
             SetTimerLabel(0f);
             SetCountdownVisible(false);
@@ -291,6 +315,14 @@ namespace ToJam26.Gameplay.Interface
                 return;
 
             instructionRoot.SetActive(visible);
+        }
+
+        private void SetReadyUpVisible(bool visible)
+        {
+            if (readyUpTextRoot == null)
+                return;
+
+            readyUpTextRoot.SetActive(visible);
         }
 
         private void SetTimerLabel(float remainingTime)

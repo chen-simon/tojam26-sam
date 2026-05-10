@@ -9689,6 +9689,7 @@ MonoBehaviour:
   roundText: {fileID: 1017717361}
   timerRoot: {fileID: 153596299}
   instructionRoot: {fileID: 1814557045}
+  readyUpTextRoot: {fileID: 616678266}
   countdownRoot: {fileID: 1364667886}
   countdownAnimator: {fileID: 757721081}
   roundRoot: {fileID: 1762268811}
