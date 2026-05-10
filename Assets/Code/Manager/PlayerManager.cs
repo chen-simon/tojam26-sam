@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Unity.Cinemachine;
 using UnityEngine.InputSystem;
 using ToJam26.Gameplay.Player;
@@ -21,6 +22,10 @@ public class PlayerManager : MonoBehaviour
 
     [SerializeField] private Transform playersParent;
     [SerializeField] private List<Animator> playerHitUIAnimators;
+
+    [Header("Connect UI")]
+    [SerializeField] private Image p1ConnectImage;
+    [SerializeField] private Image p2ConnectImage;
 
     [Header("Camera Transitions")]
     [SerializeField] private Transform cameraRigsParent;
@@ -110,6 +115,11 @@ public class PlayerManager : MonoBehaviour
             if (playerIndex < playerHitUIAnimators.Count && playerHitUIAnimators[playerIndex] != null)
                 playerController.SetHitUIAnimator(playerHitUIAnimators[playerIndex]);
         }
+
+        if (playerIndex == 0 && p1ConnectImage != null)
+            p1ConnectImage.gameObject.SetActive(false);
+        else if (playerIndex == 1 && p2ConnectImage != null)
+            p2ConnectImage.gameObject.SetActive(false);
 
         PlayerJoined?.Invoke(player);
         RefreshJoiningState();
