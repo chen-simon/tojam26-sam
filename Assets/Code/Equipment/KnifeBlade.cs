@@ -16,6 +16,7 @@ namespace ToJam26.Gameplay.Equipment
         [SerializeField] private bool startEnabled = false;
 
         [SerializeField] private GameObject hitParticlePrefab;
+        [SerializeField] private GameObject cheeseParticlePrefab;
         [SerializeField] private GameObject cutParticlePrefab;
         [SerializeField] private GameObject koParticlePrefab;
         [FormerlySerializedAs("koScaleThreshold")]
@@ -77,6 +78,7 @@ namespace ToJam26.Gameplay.Equipment
 
             Transform effectCamera = ResolveEffectCameraTransform(target);
 
+            SpawnEffectPrefab(cheeseParticlePrefab, cutPoint, effectCamera);
             SpawnEffectPrefab(hitParticlePrefab, cutPoint, effectCamera);
             SpawnEffectPrefab(cutParticlePrefab, cutPoint, effectCamera);
 
