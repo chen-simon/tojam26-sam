@@ -16,8 +16,8 @@ public class FootParticleSpawner : MonoBehaviour
     {
         float speed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
 
-        bool leftIsAbove = leftFoot.position.y > spawnHeight;
-        bool rightIsAbove = rightFoot.position.y > spawnHeight;
+        bool leftIsAbove = (leftFoot.position.y - transform.position.y) > spawnHeight;
+        bool rightIsAbove = (rightFoot.position.y - transform.position.y) > spawnHeight;
 
         if (speed >= spawnSpeed)
         {
