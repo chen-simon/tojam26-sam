@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ToJam26.Gameplay.Player;
@@ -8,6 +9,13 @@ namespace ToJam26.Gameplay.Manager
 {
     public class GameManager : MonoBehaviour
     {
+        public event Action<int, int, float> RoundPreparationStarted;
+        public event Action<int, int, float> RoundStarted;
+        public event Action<float> RoundTimeChanged;
+        public event Action<bool> PlayerRequirementChanged;
+        public event Action MatchEnded;
+        public event Action LobbyEntered;
+
         [Header("References")]
         [SerializeField] private PlayerManager playerManager;
         [SerializeField] private CuttingGameManager cuttingGameManager;
@@ -46,6 +54,8 @@ namespace ToJam26.Gameplay.Manager
 
         public float RemainingRoundTime => remainingRoundTime;
         public int CurrentRoundNumber => currentRoundNumber;
+        public int MaxRounds => maxRounds;
+        public bool HasRequiredPlayers => HasEnoughPlayers();
         public bool IsRoundActive => roundActive;
         public bool IsMatchEnded => matchCompleted;
         public float FallThresholdY => fallThresholdY;
@@ -102,6 +112,8 @@ namespace ToJam26.Gameplay.Manager
                 return;
 
             remainingRoundTime = Mathf.Max(0f, remainingRoundTime - Time.deltaTime);
+            RoundTimeChanged?.Invoke(remainingRoundTime);
+
             if (remainingRoundTime <= 0f)
             {
                 ResolveRoundByTimeout();
@@ -171,6 +183,7 @@ namespace ToJam26.Gameplay.Manager
             matchPlayers.Add(scaleController);
             roundWins[scaleController] = 0;
             scaleController.OnEliminated += HandlePlayerEliminated;
+            PlayerRequirementChanged?.Invoke(HasEnoughPlayers());
 
             if (debugLogs)
                 Debug.Log($"[GameManager] Registered player {scaleController.name}", scaleController);
@@ -257,12 +270,16 @@ namespace ToJam26.Gameplay.Manager
             if (debugLogs)
                 Debug.Log($"[GameManager] Preparing round {currentRoundNumber}.", this);
 
+            RoundPreparationStarted?.Invoke(currentRoundNumber, maxRounds, roundStartDelaySeconds);
+
             if (roundStartDelaySeconds > 0f)
                 yield return new WaitForSeconds(roundStartDelaySeconds);
 
             remainingRoundTime = roundDurationSeconds;
             roundActive = true;
             resolvingRound = false;
+            RoundStarted?.Invoke(currentRoundNumber, maxRounds, roundDurationSeconds);
+            RoundTimeChanged?.Invoke(remainingRoundTime);
 
             if (playerManager != null)
                 playerManager.SetPlayersGameplayEnabled(true);
@@ -374,6 +391,8 @@ namespace ToJam26.Gameplay.Manager
             roundActive = false;
             resolvingRound = true;
             matchCompleted = true;
+            RoundTimeChanged?.Invoke(0f);
+            MatchEnded?.Invoke();
 
             if (playerManager != null)
                 playerManager.SetPlayersGameplayEnabled(false);
@@ -523,6 +542,9 @@ namespace ToJam26.Gameplay.Manager
             resolvingRound = false;
             currentRoundNumber = 0;
             remainingRoundTime = 0f;
+            PlayerRequirementChanged?.Invoke(HasEnoughPlayers());
+            RoundTimeChanged?.Invoke(remainingRoundTime);
+            LobbyEntered?.Invoke();
 
             ResetScores();
 
