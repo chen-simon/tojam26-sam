@@ -13,6 +13,7 @@ namespace ToJam26.Gameplay.Player
 
         [Header("Movement Settings")]
         [SerializeField] private float baseMovementSpeed = 5f;
+        [SerializeField] private float maxMovementSpeed = 7.7f;
         [SerializeField] private AnimationCurve speedScaleCurve = AnimationCurve.Linear(0, 0.5f, 1, 1);
 
         [Header("Knockback Settings")]
@@ -189,7 +190,7 @@ namespace ToJam26.Gameplay.Player
 
         public float GetCurrentMovementSpeed()
         {
-            return baseMovementSpeed * MovementSpeedMultiplier;
+            return Mathf.Min(baseMovementSpeed * MovementSpeedMultiplier, maxMovementSpeed);
         }
 
         public float GetKnockbackMultiplier()

@@ -692,6 +692,7 @@ MonoBehaviour:
   originalMass: 10
   minScale: 0.05
   baseMovementSpeed: 5
+  maxMovementSpeed: 7.7
   speedScaleCurve:
     serializedVersion: 2
     m_Curve:
@@ -1022,6 +1023,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6460168430261530539}
     m_Modifications:
+    - target: {fileID: 810691084671426197, guid: 59f2bfbef2323e3439268ff1434577ba, type: 3}
+      propertyPath: m_Color.b
+      value: 0.9622642
+      objectReference: {fileID: 0}
+    - target: {fileID: 810691084671426197, guid: 59f2bfbef2323e3439268ff1434577ba, type: 3}
+      propertyPath: m_Color.g
+      value: 0.91826385
+      objectReference: {fileID: 0}
+    - target: {fileID: 810691084671426197, guid: 59f2bfbef2323e3439268ff1434577ba, type: 3}
+      propertyPath: m_Color.r
+      value: 0.5310609
+      objectReference: {fileID: 0}
     - target: {fileID: 4282890581927615876, guid: 59f2bfbef2323e3439268ff1434577ba, type: 3}
       propertyPath: m_Enabled
       value: 0
