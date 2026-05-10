@@ -101,7 +101,11 @@ namespace ToJam26.Gameplay.Equipment
                 if (victimController != null)
                     victimController.TriggerHitUI();
                 if (HitstopManager.Instance != null)
-                    HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, victimScale.KnockbackForceMultiplier);
+                {
+                    PlayerController ownerController = owner != null ? owner.GetComponent<PlayerController>() : null;
+                    PlayerCameraController attackerCamera = ownerController != null ? ownerController.GetCameraController() : null;
+                    HitstopManager.Instance.TriggerHitstop(victimAnimator, victimScale, victimScale.KnockbackForceMultiplier, attackerCamera);
+                }
             }
 
             if (enableDebugLogs)

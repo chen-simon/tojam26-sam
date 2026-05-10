@@ -14,10 +14,14 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float attackerHitstopAnimSpeed = 0.05f;
         [SerializeField] private float victimStunAnimSpeed = 1f;
         [SerializeField] private float baseShakeAmplitude = 1f;
+        [SerializeField] private float attackerShakeAmplitudeScale = 0.35f;
+        [SerializeField] private float attackerMinShakeAmplitude = 0.3f;
+        [SerializeField] private float victimMinShakeAmplitude = 0.5f;
 
         private Coroutine activeHitstop;
         private Animator currentVictimAnimator;
         private ScaleController currentVictimScale;
+        private PlayerCameraController currentAttackerCamera;
 
         private static readonly int AnimStun = Animator.StringToHash("Stun");
 
@@ -37,7 +41,7 @@ namespace ToJam26.Gameplay.Manager
                 Instance = null;
         }
 
-        public void TriggerHitstop(Animator victimAnimator, ScaleController victimScale, float knockbackMultiplier)
+        public void TriggerHitstop(Animator victimAnimator, ScaleController victimScale, float knockbackMultiplier, PlayerCameraController attackerCamera = null)
         {
             float frames = Mathf.Min(baseHitstopFrames * Mathf.Max(knockbackMultiplier, 0.1f), maxHitstopFrames);
             float duration = frames / 60f;
@@ -50,6 +54,7 @@ namespace ToJam26.Gameplay.Manager
 
             currentVictimAnimator = victimAnimator;
             currentVictimScale = victimScale;
+            currentAttackerCamera = attackerCamera;
             activeHitstop = StartCoroutine(HitstopCoroutine(victimAnimator, victimScale, duration, knockbackMultiplier));
         }
 
@@ -94,6 +99,7 @@ namespace ToJam26.Gameplay.Manager
             }
 
             SetCameraShake(false);
+            currentAttackerCamera = null;
             activeHitstop = null;
         }
 
@@ -107,7 +113,10 @@ namespace ToJam26.Gameplay.Manager
                 if (noise == null)
                     continue;
 
-                noise.AmplitudeGain = baseShakeAmplitude * knockbackMultiplier;
+                bool isAttacker = cam == currentAttackerCamera;
+                float scale = isAttacker ? attackerShakeAmplitudeScale : 1f;
+                float minAmplitude = isAttacker ? attackerMinShakeAmplitude : victimMinShakeAmplitude;
+                noise.AmplitudeGain = Mathf.Max(baseShakeAmplitude * knockbackMultiplier * scale, minAmplitude);
                 noise.enabled = enabled;
             }
         }
