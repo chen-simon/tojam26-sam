@@ -23,14 +23,14 @@ namespace ToJam26.Gameplay.Manager
 
         [Header("Match Settings")]
         [SerializeField] private int requiredPlayerCount = 2;
-        [SerializeField] private int maxRounds = 3;
-        [SerializeField] private int roundsToWin = 2;
+        [SerializeField] private int maxRounds = 5;
+        [SerializeField] private int roundsToWin = 3;
         [SerializeField] private bool useLobbyReadyFlow = true;
         [SerializeField] private List<LobbyReadyZone> lobbyReadyZones = new();
         [SerializeField] private bool autoStartWhenEnoughPlayers = true;
 
         [Header("Round Settings")]
-        [SerializeField] private float roundDurationSeconds = 60f;
+        [SerializeField] private float roundDurationSeconds = 80f;
         [SerializeField] private float roundEndDelaySeconds = 2f;
         [SerializeField] private float postMatchLobbyDelaySeconds = 2f;
         [SerializeField] private float fallThresholdY = -10f;
