@@ -320,6 +320,7 @@ namespace ToJam26.Gameplay.Player
                 animator.speed = speed;
         }
 
+        public Transform GetCameraTransform() => cameraTransform;
         public Animator GetAnimator() => animator;
 
     }

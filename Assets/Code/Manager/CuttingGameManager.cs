@@ -117,18 +117,7 @@ namespace ToJam26.Gameplay.Manager
                 sliceTarget.transform.InverseTransformDirection(-cutNormal),
                 sliceTarget.transform.InverseTransformPoint(cutPoint));
 
-            GameObject[] sliceResults;
-            try
-            {
-                sliceResults = Slicer.Slice(slicePlane, sliceTarget, insideSliceMaterial);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning($"[CuttingGameManager] Slice failed on {sliceTarget.name}: {ex.Message}", sliceTarget);
-                return false;
-            }
-
-            if (sliceResults == null || sliceResults.Length != 2)
+            if (!TryGenerateSliceResults(sliceTarget, slicePlane, out GameObject[] sliceResults))
                 return false;
 
             MeshFilter positiveMeshFilter = sliceResults[0].GetComponent<MeshFilter>();
@@ -155,6 +144,47 @@ namespace ToJam26.Gameplay.Manager
 
             targetPlayer.RecalculateScale();
             ApplyPlayerKnockback(targetPlayer, attackDirection, cuttingForce);
+            return true;
+        }
+
+        public bool TryPredictPostSliceScale(ScaleController targetPlayer, Vector3 cutPoint, Vector3 cutNormal, out float predictedScale)
+        {
+            predictedScale = targetPlayer != null ? targetPlayer.CurrentScale : 1f;
+            if (targetPlayer == null)
+                return false;
+
+            GameObject sliceTarget = targetPlayer.SliceTargetObject;
+            MeshFilter sourceMeshFilter = targetPlayer.SliceMeshFilter;
+            if (sliceTarget == null || sourceMeshFilter == null || sourceMeshFilter.sharedMesh == null)
+                return false;
+
+            if (!sourceMeshFilter.sharedMesh.isReadable)
+                return false;
+
+            EnsureSliceSettings(sliceTarget);
+
+            Plane slicePlane = new Plane(
+                sliceTarget.transform.InverseTransformDirection(-cutNormal),
+                sliceTarget.transform.InverseTransformPoint(cutPoint));
+
+            if (!TryGenerateSliceResults(sliceTarget, slicePlane, out GameObject[] sliceResults))
+                return false;
+
+            MeshFilter positiveMeshFilter = sliceResults[0].GetComponent<MeshFilter>();
+            MeshFilter negativeMeshFilter = sliceResults[1].GetComponent<MeshFilter>();
+            if (positiveMeshFilter == null || negativeMeshFilter == null ||
+                positiveMeshFilter.sharedMesh == null || negativeMeshFilter.sharedMesh == null)
+            {
+                DestroyTemporarySlices(sliceResults);
+                return false;
+            }
+
+            float positiveVolume = MeshVolumeCalculator.CalculateVolume(positiveMeshFilter.sharedMesh);
+            float negativeVolume = MeshVolumeCalculator.CalculateVolume(negativeMeshFilter.sharedMesh);
+            MeshFilter keptMeshFilter = positiveVolume >= negativeVolume ? positiveMeshFilter : negativeMeshFilter;
+            predictedScale = CalculateScaleFromMesh(targetPlayer, keptMeshFilter.sharedMesh);
+
+            DestroyTemporarySlices(sliceResults);
             return true;
         }
 
@@ -235,6 +265,43 @@ namespace ToJam26.Gameplay.Manager
             sliceable.ShareVertices = shareVertices;
             sliceable.SmoothVertices = smoothVertices;
             sliceable.UseGravity = true;
+        }
+
+        private bool TryGenerateSliceResults(GameObject sliceTarget, Plane slicePlane, out GameObject[] sliceResults)
+        {
+            sliceResults = null;
+
+            try
+            {
+                sliceResults = Slicer.Slice(slicePlane, sliceTarget, insideSliceMaterial);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[CuttingGameManager] Slice failed on {sliceTarget.name}: {ex.Message}", sliceTarget);
+                return false;
+            }
+
+            return sliceResults != null && sliceResults.Length == 2;
+        }
+
+        private static float CalculateScaleFromMesh(ScaleController targetPlayer, Mesh keptMesh)
+        {
+            if (targetPlayer == null || keptMesh == null)
+                return 1f;
+
+            float predictedScale = targetPlayer.CurrentScale;
+            MeshFilter meshFilter = targetPlayer.SliceMeshFilter;
+            if (meshFilter == null || meshFilter.sharedMesh == null)
+                return predictedScale;
+
+            float currentVolume = targetPlayer.GetCurrentVolume();
+            if (currentVolume <= 0f)
+                return predictedScale;
+
+            float keptVolume = MeshVolumeCalculator.CalculateVolume(keptMesh);
+            float volumeRatio = keptVolume / currentVolume;
+            predictedScale *= Mathf.Pow(Mathf.Max(0f, volumeRatio), 1f / 3f);
+            return Mathf.Max(predictedScale, targetPlayer.MinScale);
         }
 
         private void RegisterExistingPlayers()

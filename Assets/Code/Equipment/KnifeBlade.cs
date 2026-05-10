@@ -3,6 +3,7 @@ using UnityEngine.Serialization;
 using ToJam26.Gameplay.Slicing;
 using ToJam26.Gameplay.Player;
 using ToJam26.Gameplay.Manager;
+using ToJam26.Gameplay.Utility;
 
 namespace ToJam26.Gameplay.Equipment
 {
@@ -16,6 +17,9 @@ namespace ToJam26.Gameplay.Equipment
 
         [SerializeField] private GameObject hitParticlePrefab;
         [SerializeField] private GameObject cutParticlePrefab;
+        [SerializeField] private GameObject koParticlePrefab;
+        [FormerlySerializedAs("koScaleThreshold")]
+        [SerializeField] private float koVolumeThreshold = 0.4f;
 
         [Header("Slicing Settings")]
         [SerializeField] private Vector3 sliceNormal = Vector3.up;
@@ -71,11 +75,16 @@ namespace ToJam26.Gameplay.Equipment
             if (target == null)
                 return false;
 
-            Instantiate(hitParticlePrefab, cutPoint, Quaternion.identity);
-            Instantiate(cutParticlePrefab, cutPoint, Quaternion.identity);
+            Transform effectCamera = ResolveEffectCameraTransform(target);
+
+            SpawnEffectPrefab(hitParticlePrefab, cutPoint, effectCamera);
+            SpawnEffectPrefab(cutParticlePrefab, cutPoint, effectCamera);
 
             string targetName = target is Component targetComponent ? targetComponent.name : target.ToString();
             Debug.Log($"[KnifeBlade] Hit {targetName} at {cutPoint} with normal {cutNormal}", this);
+
+            if (target is ScaleController preSliceVictimScale)
+                TrySpawnKoParticle(preSliceVictimScale, cutPoint, effectCamera);
 
             Vector3 attackDirection = owner != null ? owner.transform.forward : transform.forward;
             target.OnSliced(cutPoint, cutNormal, cuttingForce, attackDirection);
@@ -93,6 +102,71 @@ namespace ToJam26.Gameplay.Equipment
                 Debug.Log($"[KnifeBlade] Sliced {target} at {cutPoint} with normal {cutNormal}", this);
 
             return true;
+        }
+
+        private void TrySpawnKoParticle(
+            ScaleController victimScale,
+            Vector3 cutPoint,
+            Transform effectCamera)
+        {
+            if (victimScale == null)
+            {
+                Debug.LogWarning("[KnifeBlade] KO check skipped because victimScale is null.", this);
+                return;
+            }
+
+            float victimCurrentScale = victimScale.currentScale;
+            float victimCurrentVolumeRatio = victimScale.currentVolumeRatio;
+            bool shouldPlayKo = victimCurrentVolumeRatio < koVolumeThreshold;
+
+            Debug.Log(
+                $"[KnifeBlade] KO check on {victimScale.name}: currentScale={victimCurrentScale:F3}, currentVolumeRatio={victimCurrentVolumeRatio:F3}, koVolumeThreshold={koVolumeThreshold:F3}, shouldPlayKo={shouldPlayKo}",
+                this);
+
+            if (!shouldPlayKo)
+                return;
+
+            if (koParticlePrefab == null)
+            {
+                Debug.LogWarning($"[KnifeBlade] KO should play on {victimScale.name}, but koParticlePrefab is null.", this);
+                return;
+            }
+
+            SpawnEffectPrefab(koParticlePrefab, cutPoint, effectCamera);
+        }
+
+        private void SpawnEffectPrefab(GameObject effectPrefab, Vector3 position, Transform effectCamera)
+        {
+            if (effectPrefab == null)
+                return;
+
+            GameObject effectInstance = Instantiate(effectPrefab, position, Quaternion.identity);
+            FaceCameraBillboard billboard = effectInstance.GetComponent<FaceCameraBillboard>();
+            if (billboard == null)
+                billboard = effectInstance.AddComponent<FaceCameraBillboard>();
+
+            billboard.SetTargetCamera(effectCamera);
+        }
+
+        private Transform ResolveEffectCameraTransform(object target)
+        {
+            PlayerController ownerController = owner != null ? owner.GetComponent<PlayerController>() : null;
+            Transform ownerCamera = ownerController != null ? ownerController.GetCameraTransform() : null;
+            if (ownerCamera != null)
+                return ownerCamera;
+
+            if (target is Component targetComponent)
+            {
+                PlayerController targetController = targetComponent.GetComponent<PlayerController>();
+                if (targetController == null)
+                    targetController = targetComponent.GetComponentInParent<PlayerController>();
+
+                Transform targetCamera = targetController != null ? targetController.GetCameraTransform() : null;
+                if (targetCamera != null)
+                    return targetCamera;
+            }
+
+            return Camera.main != null ? Camera.main.transform : null;
         }
 
         private bool IsPartOfOwner(GameObject candidate)

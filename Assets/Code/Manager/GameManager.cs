@@ -50,6 +50,7 @@ namespace ToJam26.Gameplay.Manager
         public int CurrentRoundNumber => currentRoundNumber;
         public bool IsRoundActive => roundActive;
         public bool IsMatchEnded => matchEnded;
+        public float FallThresholdY => fallThresholdY;
 
         private void Awake()
         {

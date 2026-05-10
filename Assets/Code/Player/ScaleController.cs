@@ -26,7 +26,8 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private bool useVolumeCalculation = true;
 
         private float currentMass;
-        private float currentScale = 1f;
+        public float currentScale = 1f;
+        public float currentVolumeRatio = 1f;
         private float originalVolume;
         private Mesh originalMesh;
         private Material[] originalMaterials;
@@ -47,10 +48,12 @@ namespace ToJam26.Gameplay.Player
 
         public float CurrentMass => currentMass;
         public float CurrentScale => currentScale;
-        public float MassRatio => currentMass / Mathf.Max(originalMass, 0.0001f);
+        public float MinScale => minScale;
+        public float MassRatio => currentVolumeRatio;
         public float ScaleRatio => currentScale;
         public float MovementSpeedMultiplier => speedScaleCurve.Evaluate(MassRatio);
         public float KnockbackForceMultiplier => knockbackScaleCurve.Evaluate(MassRatio);
+        public float KnockbackDeceleration => knockbackDeceleration;
         public bool IsKnockedBack => isKnockedBack && !isKnockbackPaused;
         public bool IsEliminated => isEliminated;
         public MeshFilter SliceMeshFilter => meshFilter;
@@ -89,6 +92,7 @@ namespace ToJam26.Gameplay.Player
 
             currentMass = originalMass;
             currentScale = 1f;
+            currentVolumeRatio = 1f;
             isEliminated = false;
             isInitialized = true;
             OnScaleChanged?.Invoke(currentScale, currentMass);
@@ -157,6 +161,7 @@ namespace ToJam26.Gameplay.Player
 
             currentScale = Mathf.Max(currentScale, minScale);
             currentMass = originalMass * (currentScale * currentScale * currentScale);
+            currentVolumeRatio = currentMass / Mathf.Max(originalMass, 0.0001f);
             OnScaleChanged?.Invoke(currentScale, currentMass);
 
             if (currentScale <= minScale)
@@ -167,6 +172,7 @@ namespace ToJam26.Gameplay.Player
         {
             currentScale = Mathf.Max(newScale, minScale);
             currentMass = originalMass * (currentScale * currentScale * currentScale);
+            currentVolumeRatio = currentMass / Mathf.Max(originalMass, 0.0001f);
             OnScaleChanged?.Invoke(currentScale, currentMass);
 
             if (currentScale <= minScale)
@@ -189,6 +195,11 @@ namespace ToJam26.Gameplay.Player
         public float GetKnockbackMultiplier()
         {
             return KnockbackForceMultiplier;
+        }
+
+        public float PredictKnockbackMagnitude(float cuttingForce)
+        {
+            return cuttingForce * KnockbackForceMultiplier;
         }
 
         public void Eliminate()
@@ -220,6 +231,7 @@ namespace ToJam26.Gameplay.Player
 
             currentScale = 1f;
             currentMass = originalMass;
+            currentVolumeRatio = 1f;
             isKnockedBack = false;
             isKnockbackPaused = false;
             currentKnockbackVelocity = Vector3.zero;
