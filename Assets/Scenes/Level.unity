@@ -2587,6 +2587,75 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8972468263393349850, guid: e892a0791c74b4ae188146923dc9598d, type: 3}
   m_PrefabInstance: {fileID: 1712755915}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &580101156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 580101157}
+  - component: {fileID: 580101158}
+  m_Layer: 5
+  m_Name: Score Board
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &580101157
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 580101156}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1265305688}
+  - {fileID: 1958859041}
+  m_Father: {fileID: 1079507526}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &580101158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 580101156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20c8aa5421d34c29b3def9fd0cfd7400, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 1550303676}
+  playerManager: {fileID: 1394973654}
+  scoreBoardRoot: {fileID: 580101157}
+  scoreStatPrefab: {fileID: 3071747562265399269, guid: 44f4b09fbd0bc9c419ef69091ff47409, type: 3}
+  p1ScoreRoot: {fileID: 1265305688}
+  p2ScoreRoot: {fileID: 1958859041}
+  scoreAnimationStateName: scored
+  scoreAnimationDuration: 0.5
+  scorePopupDuration: 0.4
+  scorePopupStartScaleMultiplier: 0.55
+  iconFlyDuration: 0.5
+  centerScale: 3
+  landedScale: 1
+  iconSpacing: 92
+  scorePopupEase: 16
+  iconMoveEase: 18
+  iconScaleEase: 34
+  scorePopupPunchVibrato: 1
+  scorePopupPunchElasticity: 0.85
 --- !u!1 &586043179
 GameObject:
   m_ObjectHideFlags: 0
@@ -5801,6 +5870,7 @@ RectTransform:
   - {fileID: 193523144}
   - {fileID: 902115363}
   - {fileID: 586043180}
+  - {fileID: 580101157}
   m_Father: {fileID: 1818696965}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -7098,6 +7168,41 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3560605096034207157, guid: dfbd3f210ca56407c8b2ce7adbda774f, type: 3}
   m_PrefabInstance: {fileID: 1259696862}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1265305687
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1265305688}
+  m_Layer: 5
+  m_Name: P1 Score
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1265305688
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265305687}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 580101157}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -855, y: 461.14062}
+  m_SizeDelta: {x: 789.1168, y: 153.7188}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1280235410
 GameObject:
   m_ObjectHideFlags: 0
@@ -8461,6 +8566,7 @@ MonoBehaviour:
   - {fileID: 81566507}
   autoStartWhenEnoughPlayers: 1
   roundDurationSeconds: 80
+  preRoundIntroSeconds: 0
   roundEndDelaySeconds: 2
   postMatchLobbyDelaySeconds: 2
   fallThresholdY: -10
@@ -8483,10 +8589,16 @@ MonoBehaviour:
   koClip: {fileID: 8300000, guid: aedb7853c2f59c84da4d0db1342f66ba, type: 3}
   ambienceClip: {fileID: 8300000, guid: 64bb9c5a75242f34b8d1b2b1fc70fab4, type: 3}
   crowdCheerClip: {fileID: 8300000, guid: 620e37e39dbdb5c449e8f30c5af7e1fb, type: 3}
+  bgmIntroClip: {fileID: 8300000, guid: fa36ac485cb57a74ead0fb2261c3e28d, type: 3}
+  countdownClip: {fileID: 8300000, guid: 01fea2df54b3541418b586382133b224, type: 3}
+  battleBgmClip: {fileID: 8300000, guid: 5e27d8a4846a9264c884d062dda44a15, type: 3}
   sfxVolume: 1.3
-  ambienceVolume: 0.1
+  bgmVolume: 0.7
+  ambienceVolume: 0.15
   ambienceDuckedVolume: 0.02
   crowdCheerVolume: 0.35
+  hitCrowdCheerVolume: 0.2
+  musicTransitionSeconds: 0.2
   crowdFadeInSeconds: 0.2
   crowdFadeOutSeconds: 0.45
   ambienceFadeSeconds: 0.35
@@ -10394,6 +10506,41 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3560605096034207157, guid: dfbd3f210ca56407c8b2ce7adbda774f, type: 3}
   m_PrefabInstance: {fileID: 1945068367}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1958859040
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1958859041}
+  m_Layer: 5
+  m_Name: P2 Score
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1958859041
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1958859040}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 580101157}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 855, y: 461.14062}
+  m_SizeDelta: {x: 789.1168, y: 153.7188}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1959711329
 GameObject:
   m_ObjectHideFlags: 0

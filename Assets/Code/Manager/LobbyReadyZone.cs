@@ -12,6 +12,49 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private Material unreadyMaterial;
 
         private readonly Dictionary<ScaleController, int> occupants = new();
+        private Collider zoneCollider;
+
+        private void Awake()
+        {
+            zoneCollider = GetComponent<Collider>();
+        }
+
+        private void Update()
+        {
+            if (occupants.Count == 0)
+                return;
+
+            bool changed = false;
+            List<ScaleController> outside = null;
+            foreach (KeyValuePair<ScaleController, int> occupant in occupants)
+            {
+                if (occupant.Key == null || !occupant.Key.gameObject.activeInHierarchy)
+                {
+                    outside ??= new List<ScaleController>();
+                    outside.Add(occupant.Key);
+                    changed = true;
+                    continue;
+                }
+
+                Vector3 pos = occupant.Key.transform.position;
+                Vector3 closest = zoneCollider.ClosestPoint(pos);
+                if ((closest - pos).sqrMagnitude > 0.01f)
+                {
+                    outside ??= new List<ScaleController>();
+                    outside.Add(occupant.Key);
+                    changed = true;
+                }
+            }
+
+            if (outside != null)
+            {
+                foreach (ScaleController p in outside)
+                    occupants.Remove(p);
+            }
+
+            if (changed)
+                UpdateColor();
+        }
 
         public int OccupantCount
         {
