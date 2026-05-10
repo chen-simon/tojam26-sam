@@ -245,7 +245,7 @@ namespace ToJam26.Gameplay.Player
             }
 
             bool isFreeLook = playerCameraController == null || playerCameraController.IsFreeLook;
-            if (!scaleController.IsKnockedBack)
+            if (!scaleController.IsKnockedBack && inMovementState)
             {
                 Vector3 facingDir = Vector3.zero;
                 if (!isFreeLook && cameraTransform != null)
