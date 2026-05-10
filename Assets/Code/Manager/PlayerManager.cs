@@ -160,6 +160,9 @@ public class PlayerManager : MonoBehaviour
             var vcam = player.GetComponentInChildren<CinemachineCamera>();
             if (vcam != null && vcam.TryGetComponent<PlayerCameraController>(out var camController))
                 camController.SetSpawnOrientation(spawn);
+
+            if (player.TryGetComponent<PlayerController>(out var pc))
+                pc.SetGameplayEnabled(true);
         }
     }
 

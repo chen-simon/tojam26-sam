@@ -340,9 +340,6 @@ namespace ToJam26.Gameplay.Manager
             resolvingRound = false;
             restartInputUnlockTime = Time.unscaledTime + Mathf.Max(0f, restartInputDelaySeconds);
 
-            if (playerManager != null)
-                playerManager.SendPlayersToLobby();
-
             if (debugLogs)
             {
                 string winnerName = winner != null ? winner.name : "<none>";
@@ -475,7 +472,8 @@ namespace ToJam26.Gameplay.Manager
             if (!HasAnyRestartInputThisFrame())
                 return;
 
-            StartMatch();
+            if (playerManager != null)
+                playerManager.SendPlayersToLobby();
         }
 
         private static bool HasAnyRestartInputThisFrame()
