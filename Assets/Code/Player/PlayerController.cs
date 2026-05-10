@@ -21,6 +21,9 @@ namespace ToJam26.Gameplay.Player
         [SerializeField] private PlayerCameraController playerCameraController;
         [SerializeField] private float defaultKoWarningVolumeThreshold = 0.4f;
 
+        [Header("Fall Detection")]
+        [SerializeField] private float fallTimeThreshold = 0.3f;
+
         [Header("Input Settings")]
         [SerializeField] private float inputDeadzone = 0.1f;
         [SerializeField] private float rotationSpeed = 720f;
@@ -49,6 +52,7 @@ namespace ToJam26.Gameplay.Player
         private readonly List<Coroutine> hitReactionHideCoroutines = new();
         private bool sweatEffectVisible;
         private float cachedKoWarningVolumeThreshold = -1f;
+        private float airTime;
 
         private static readonly int AnimForwardVel = Animator.StringToHash("forward_vel");
         private static readonly int AnimRightVel = Animator.StringToHash("right_vel");
@@ -338,9 +342,10 @@ namespace ToJam26.Gameplay.Player
                 float rawRight = Vector3.Dot(flatVel, transform.right) + angularVel * rotationVelContribution;
                 smoothedForwardVel = Mathf.Lerp(smoothedForwardVel, rawForward, speedDamping * Time.deltaTime);
                 smoothedRightVel = Mathf.Lerp(smoothedRightVel, rawRight, speedDamping * Time.deltaTime);
+                airTime = characterController.isGrounded ? 0f : airTime + Time.deltaTime;
                 animator.SetFloat(AnimForwardVel, smoothedForwardVel);
                 animator.SetFloat(AnimRightVel, smoothedRightVel);
-                animator.SetBool(AnimIsFalling, !characterController.isGrounded);
+                animator.SetBool(AnimIsFalling, airTime >= fallTimeThreshold);
             }
 
             bool isFreeLook = playerCameraController == null || playerCameraController.IsFreeLook;

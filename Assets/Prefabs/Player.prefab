@@ -28,8 +28,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 644803497907301011}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07822096, y: 0, z: 0, w: 0.9969361}
-  m_LocalPosition: {x: 0, y: 2.25, z: -4.75}
+  m_LocalRotation: {x: 0.16449514, y: -0.7421533, z: 0.19719593, w: 0.6190829}
+  m_LocalPosition: {x: 3.5528567, y: 3.7256, z: -0.8423825}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -672,6 +672,7 @@ MonoBehaviour:
   - {fileID: 7428625313923703804}
   playerCameraController: {fileID: 4280379428734956454}
   defaultKoWarningVolumeThreshold: 0.4
+  fallTimeThreshold: 0.2
   inputDeadzone: 0.1
   rotationSpeed: 15
   speedDamping: 20
