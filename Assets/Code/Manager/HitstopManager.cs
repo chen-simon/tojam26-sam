@@ -14,9 +14,9 @@ namespace ToJam26.Gameplay.Manager
         [SerializeField] private float attackerHitstopAnimSpeed = 0.05f;
         [SerializeField] private float victimStunAnimSpeed = 1f;
         [SerializeField] private float baseShakeAmplitude = 1f;
-        [SerializeField] private float attackerShakeAmplitudeScale = 0.35f;
-        [SerializeField] private float attackerMinShakeAmplitude = 0.3f;
-        [SerializeField] private float victimMinShakeAmplitude = 0.5f;
+        [SerializeField] private float attackerShakeAmplitudeScale = 0.7f;
+        [SerializeField] private float attackerMinShakeAmplitude = 8f;
+        [SerializeField] private float victimMinShakeAmplitude = 12f;
 
         private Coroutine activeHitstop;
         private Animator currentVictimAnimator;
